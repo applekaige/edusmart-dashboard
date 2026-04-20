@@ -3,251 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduSmart Parent Dashboard</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>EduSmart 2026 | Parent Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary: #2D5CFE;
-            --success: #00C851;
-            --warning: #ffbb33;
-            --danger: #ff4444;
-            --bg: #F8F9FA;
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --success: #27ae60;
+            --bg: #f4f7f6;
         }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-        }
-
-        .app-container {
-            width: 100%;
-            max-width: 480px;
-            background: white;
-            min-height: 100vh;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-        }
-
-        /* Header */
-        .header {
-            background: var(--primary);
-            color: white;
-            padding: 25px 20px;
-            border-radius: 0 0 25px 25px;
-        }
-
-        .student-profile {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .avatar {
-            width: 60px;
-            height: 60px;
-            background: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary);
-            font-size: 24px;
-            font-weight: bold;
-        }
-
-        /* Status Cards */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            padding: 20px;
-            margin-top: -30px;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 15px;
-            border-radius: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            text-align: center;
-        }
-
-        .stat-card i { color: var(--primary); margin-bottom: 5px; }
-
-        /* Homework Section */
-        .section-title {
-            padding: 0 20px;
-            color: #333;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .task-list { padding: 0 20px; }
-
-        .task-item {
-            background: #fff;
-            border-left: 5px solid var(--primary);
-            margin-bottom: 15px;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.3s ease;
-        }
-
-        .ack-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 5px;
-            cursor: pointer;
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--primary); }
+        .container { max-width: 500px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: var(--primary); font-size: 24px; margin-bottom: 5px; }
+        .student-id { text-align: center; color: #7f8c8d; font-size: 14px; margin-bottom: 25px; }
+        
+        .card { border-left: 5px solid var(--accent); background: #f9f9f9; padding: 15px; margin-bottom: 15px; border-radius: 8px; position: relative; }
+        .card h3 { margin: 0 0 10px 0; font-size: 18px; }
+        .card p { margin: 5px 0; font-size: 14px; line-height: 1.4; }
+        
+        .ack-btn { 
+            background: var(--accent); color: white; border: none; padding: 8px 15px; 
+            border-radius: 5px; cursor: pointer; font-weight: 600; width: 100%; margin-top: 10px;
             transition: 0.3s;
         }
-
-        .ack-btn.done {
-            background: var(--success);
-        }
-
-        /* AI Insight Box */
-        .ai-box {
-            margin: 20px;
-            padding: 15px;
-            background: #E8F0FE;
-            border-radius: 15px;
-            border: 1px dashed var(--primary);
-        }
-
-        .ai-title {
-            color: var(--primary);
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 5px;
-        }
+        .ack-btn.done { background: var(--success); cursor: default; }
+        
+        .balance-box { background: #e8f4fd; padding: 15px; border-radius: 8px; text-align: center; margin-top: 20px; }
+        .balance-box span { font-size: 22px; font-weight: bold; color: var(--success); }
+        
+        .footer { text-align: center; font-size: 10px; color: #bdc3c7; margin-top: 30px; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <div class="header">
-        <div class="student-profile">
-            <div class="avatar">S</div>
-            <div>
-                <h2 style="margin:0">Sharrvesh A/L Puvanesvaran</h2>
-                <span style="opacity: 0.8">Year 2 - SJKT SG Ara</span>
-            </div>
-        </div>
+<div class="container">
+    <h1><i class="fa-solid fa-graduation-cap"></i> EduSmart 2026</h1>
+    <div class="student-id">Student: Sharrvesh | ID: 2026-SH-01</div>
+
+    <div class="card">
+        <h3>Mathematics</h3>
+        <p id="math-task"><i class="fa-solid fa-spinner fa-spin"></i> Loading latest task...</p>
+        <button class="ack-btn" onclick="acknowledge(this, 'Mathematics')">ACKNOWLEDGE</button>
     </div>
 
-    <div class="stats-grid">
-        <div class="stat-card">
-            <i class="fa-solid fa-utensils"></i>
-            <div style="font-size: 12px; color: #666;">Canteen Bal.</div>
-            <div id="canteen-bal" style="font-weight: bold; color: var(--danger);">RM 12.50</div>
-        </div>
-        <div class="stat-card">
-            <i class="fa-solid fa-chart-line"></i>
-            <div style="font-size: 12px; color: #666;">Engagement</div>
-            <div style="font-weight: bold; color: var(--success);">85% (High)</div>
-        </div>
+    <div class="card">
+        <h3>Science</h3>
+        <p id="sci-task"><i class="fa-solid fa-spinner fa-spin"></i> Loading latest task...</p>
+        <button class="ack-btn" onclick="acknowledge(this, 'Science')">ACKNOWLEDGE</button>
     </div>
 
-    <div class="ai-box">
-        <div class="ai-title"><i class="fa-solid fa-robot"></i> 2026 AI Insight</div>
-        <div id="ai-text" style="font-size: 14px; color: #444;">
-            AI is analyzing today's focus...
-        </div>
+    <div class="balance-box">
+        <p>SmartCard Canteen Balance</p>
+        RM <span id="balance">0.00</span>
     </div>
 
-    <div class="section-title">
-        <h3>Today's Homework</h3>
-        <span onclick="fetchLiveData()" style="font-size: 12px; color: var(--primary); cursor: pointer;"><i class="fa-solid fa-rotate"></i> Sync</span>
-    </div>
-
-    <div class="task-list" id="homework-container">
-        <div class="task-item" id="math-task">
-            <div>
-                <div style="font-weight: bold;">Mathematics</div>
-                <div id="math-detail" style="font-size: 13px; color: #666;">Loading tasks...</div>
-            </div>
-            <button class="ack-btn" onclick="acknowledge(this, 'Math')">ACK</button>
-        </div>
-        
-        <div class="task-item" id="science-task">
-            <div>
-                <div style="font-weight: bold;">Science</div>
-                <div id="science-detail" style="font-size: 13px; color: #666;">Loading tasks...</div>
-            </div>
-            <button class="ack-btn" onclick="acknowledge(this, 'Science')">ACK</button>
-        </div>
-    </div>
-
-    <div class="ai-box" style="background: #FFF4E5; border-color: #ffbb33;">
-        <div class="ai-title" style="color: #E65100;"><i class="fa-solid fa-bullhorn"></i> Announcement</div>
-        <div style="font-size: 14px; color: #444;">
-            STEM Carnival Meeting this Friday. Please attend the briefing at the school hall at 1:30 PM.
-        </div>
-    </div>
+    <div class="footer">Developed by TS. DR. PUVANESVARAN GUNALAN</div>
 </div>
 
 <script>
-    // --- 1. CONFIGURATION ---
-    // Replace the string below with your Google Apps Script URL from Step 2
+    // YOUR LIVE GOOGLE SCRIPT URL
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzp5Me-SDRdVyobzxegY_C3PBZo3avEpih08IEBn199tVwc_bWeKhSHhsxlddonIB-v/exec";
 
-    // --- 2. FETCH LIVE DATA ---
-    async function fetchLiveData() {
-        console.log("Syncing with Cloud...");
+    // 1. AUTO-LOAD DATA ON STARTUP
+    async function loadData() {
         try {
             const response = await fetch(`${SCRIPT_URL}?read=true`);
             const data = await response.json();
             
-            // Update UI with Cloud Data
-            if (data.math_detail) document.getElementById('math-detail').innerText = data.math_detail;
-            if (data.sci_detail) document.getElementById('science-detail').innerText = data.sci_detail;
-            if (data.ai_insight) document.getElementById('ai-text').innerText = data.ai_insight;
-            if (data.balance) document.getElementById('canteen-bal').innerText = `RM ${data.balance}`;
-            
-            console.log("Cloud Sync Complete.");
-        } catch (error) {
-            // Fallback for Demo (If no internet or URL not set)
-            console.warn("Using local demo mode.");
-            document.getElementById('math-detail').innerText = "Workbook Pg. 45 (Ex 1-5)";
-            document.getElementById('science-detail').innerText = "Bring Magnet for Lab";
-            document.getElementById('ai-text').innerText = "Sharrvesh was very active in Math today. Suggestion: Review 'Fractions' for 10 minutes.";
+            document.getElementById('math-task').innerText = data.math_detail;
+            document.getElementById('sci-task').innerText = data.sci_detail;
+            document.getElementById('balance').innerText = data.balance;
+        } catch (e) {
+            console.error("Sync Error", e);
+            document.getElementById('math-task').innerText = "Update available via Cloud sync.";
         }
     }
 
-    // --- 3. ACKNOWLEDGE LOGIC ---
-   async function acknowledge(btn, subject) {
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
-    
-    const url = `${SCRIPT_URL}?type=ACK&id=Sharrvesh&subject=${subject}`;
-    
-    try {
-        // We use 'no-cors' to ensure the request goes through even if Google doesn't return a "Success" header
-        await fetch(url, { mode: 'no-cors' }); 
-        
-        btn.innerHTML = '<i class="fa-solid fa-check"></i> Seen';
-        btn.classList.add('done');
+    // 2. ACKNOWLEDGE FUNCTION (Triggers Telegram)
+    async function acknowledge(btn, subject) {
+        // Visual feedback
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Syncing...';
         btn.disabled = true;
-        alert(`Notification sent to Sharrvesh's teacher for ${subject}!`);
-    } catch (e) {
-        console.error("Link Error:", e);
-        alert("Check your internet connection.");
-    }
-}
 
-    // Run sync when page loads
-    window.onload = fetchLiveData;
+        const triggerUrl = `${SCRIPT_URL}?type=ACK&subject=${subject}&id=Sharrvesh`;
+
+        try {
+            // 'no-cors' is mandatory for triggering Google Scripts from a static HTML
+            await fetch(triggerUrl, { 
+                mode: 'no-cors',
+                method: 'GET'
+            });
+
+            // If we reach here, the signal was sent
+            btn.innerHTML = '<i class="fa-solid fa-check-double"></i> SEEN';
+            btn.classList.add('done');
+        } catch (e) {
+            console.error("Telegram Trigger Failed", e);
+            btn.innerHTML = "Retry";
+            btn.disabled = false;
+        }
+    }
+
+    // Run on page load
+    loadData();
 </script>
 
 </body>
