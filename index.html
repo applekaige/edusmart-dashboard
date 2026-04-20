@@ -8,34 +8,76 @@
 </head>
 <body>
   <div class="container">
-    <header class="header">
+    <header class="hero">
+      <div class="hero-badge">AI + IoT + Coding + Cloud</div>
       <h1>EduSmart 2026</h1>
       <p class="subtitle">SJKT Sungai Ara STEM Project</p>
     </header>
 
     <section class="card profile-card">
-      <h2>Student Profile</h2>
+      <div class="section-title">
+        <h2>Student Profile</h2>
+        <span class="pill pill-dark">Live Data</span>
+      </div>
+
       <div class="profile-grid">
-        <div><span class="label">Student ID</span><span id="studentId">Loading...</span></div>
-        <div><span class="label">Student Name</span><span id="studentName">Loading...</span></div>
-        <div><span class="label">Class</span><span id="className">Loading...</span></div>
-        <div><span class="label">Parent</span><span id="parentName">Loading...</span></div>
-        <div><span class="label">Balance</span><span id="balance">RM 0.00</span></div>
+        <div class="info-box">
+          <span class="label">Student ID</span>
+          <span id="studentId">Loading...</span>
+        </div>
+
+        <div class="info-box">
+          <span class="label">Student Name</span>
+          <span id="studentName">Loading...</span>
+        </div>
+
+        <div class="info-box">
+          <span class="label">Class</span>
+          <span id="className">Loading...</span>
+        </div>
+
+        <div class="info-box">
+          <span class="label">Parent</span>
+          <span id="parentName">Loading...</span>
+        </div>
+
+        <div class="info-box balance-box">
+          <span class="label">Balance</span>
+          <span id="balance">RM 0.00</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card ai-card">
+      <div class="section-title">
+        <h2>AI Insights</h2>
+        <span class="pill pill-blue">Smart Summary</span>
+      </div>
+
+      <div id="aiSummary" class="ai-summary">
+        Loading AI summary...
       </div>
     </section>
 
     <section class="card">
       <div class="section-head">
-        <h2>Assignments</h2>
-        <button id="refreshBtn">Refresh</button>
+        <div class="section-title">
+          <h2>Assignments</h2>
+          <span class="pill pill-gold">Parent Action Required</span>
+        </div>
+        <button id="refreshBtn" class="refresh-btn">Refresh</button>
       </div>
+
       <div id="assignmentList" class="assignment-list">
         Loading assignments...
       </div>
     </section>
 
-    <section class="card">
-      <h2>System Status</h2>
+    <section class="card status-card">
+      <div class="section-title">
+        <h2>System Status</h2>
+        <span class="pill pill-green">Online</span>
+      </div>
       <p id="statusMsg">Connecting...</p>
     </section>
   </div>
