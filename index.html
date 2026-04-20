@@ -227,22 +227,24 @@
     }
 
     // --- 3. ACKNOWLEDGE LOGIC ---
-    async function acknowledge(btn, subject) {
-        // Change button state immediately for the demo "feel"
+   async function acknowledge(btn, subject) {
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+    
+    const url = `${SCRIPT_URL}?type=ACK&id=Sharrvesh&subject=${subject}`;
+    
+    try {
+        // We use 'no-cors' to ensure the request goes through even if Google doesn't return a "Success" header
+        await fetch(url, { mode: 'no-cors' }); 
+        
         btn.innerHTML = '<i class="fa-solid fa-check"></i> Seen';
         btn.classList.add('done');
         btn.disabled = true;
-
-        try {
-            // Inform the Cloud (and the Teacher's ESP32 eventually)
-            await fetch(`${SCRIPT_URL}?type=ACK&id=Sharrvesh&subject=${subject}`);
-            console.log(`ACK Sent for ${subject}`);
-        } catch (e) {
-            console.log("Local ACK simulated successfully.");
-        }
-        
         alert(`Notification sent to Sharrvesh's teacher for ${subject}!`);
+    } catch (e) {
+        console.error("Link Error:", e);
+        alert("Check your internet connection.");
     }
+}
 
     // Run sync when page loads
     window.onload = fetchLiveData;
