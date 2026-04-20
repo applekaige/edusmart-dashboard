@@ -1,30 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EduSmart 2026 Dashboard</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduSmart 2026 | Parent Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="container">
-    <h1>EduSmart 2026</h1>
-    <p class="subtitle">Parent Dashboard</p>
+    <header class="header">
+      <h1>EduSmart 2026</h1>
+      <p class="subtitle">SJKT Sungai Ara STEM Project</p>
+    </header>
 
-    <div class="card">
+    <section class="card profile-card">
       <h2>Student Profile</h2>
-      <p><b>Name:</b> <span id="studentName">Loading...</span></p>
-      <p><b>Class:</b> <span id="className">Loading...</span></p>
-      <p><b>Parent:</b> <span id="parentName">Loading...</span></p>
-      <p><b>Canteen Balance:</b> RM <span id="balance">0.00</span></p>
-    </div>
+      <div class="profile-grid">
+        <div><span class="label">Student ID</span><span id="studentId">Loading...</span></div>
+        <div><span class="label">Student Name</span><span id="studentName">Loading...</span></div>
+        <div><span class="label">Class</span><span id="className">Loading...</span></div>
+        <div><span class="label">Parent</span><span id="parentName">Loading...</span></div>
+        <div><span class="label">Balance</span><span id="balance">RM 0.00</span></div>
+      </div>
+    </section>
 
-    <div class="card">
-      <h2>Assignments</h2>
-      <div id="assignmentList">Loading assignments...</div>
-    </div>
+    <section class="card">
+      <div class="section-head">
+        <h2>Assignments</h2>
+        <button id="refreshBtn">Refresh</button>
+      </div>
+      <div id="assignmentList" class="assignment-list">
+        Loading assignments...
+      </div>
+    </section>
 
-    <div class="status" id="statusMsg">Connecting...</div>
+    <section class="card">
+      <h2>System Status</h2>
+      <p id="statusMsg">Connecting...</p>
+    </section>
   </div>
 
   <script src="script.js"></script>
