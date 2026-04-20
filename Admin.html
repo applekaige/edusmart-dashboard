@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduSmart 2026 Admin</title>
+  <style>
+    <?!= include('AdminCSS'); ?>
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="hero">
+      <div class="hero-badge">Teacher Control + Cloud Admin</div>
+      <h1>EduSmart 2026 Admin</h1>
+      <p class="subtitle">Apps Script Hosted Control Panel</p>
+    </header>
+
+    <section class="card">
+      <div class="section-title">
+        <h2>Add Student</h2>
+        <span class="pill pill-blue">Student Database</span>
+      </div>
+      <div class="form-grid">
+        <input id="student_id" placeholder="Student ID (e.g. STU002)">
+        <input id="student_name" placeholder="Student Name">
+        <input id="class_name" placeholder="Class">
+        <input id="parent_name" placeholder="Parent Name">
+        <input id="balance" type="number" placeholder="Balance">
+      </div>
+      <button class="admin-btn" onclick="addStudent()">Add Student</button>
+    </section>
+
+    <section class="card">
+      <div class="section-title">
+        <h2>Add Assignment</h2>
+        <span class="pill pill-gold">Teacher Input</span>
+      </div>
+      <div class="form-grid">
+        <input id="a_student_id" placeholder="Student ID">
+        <input id="subject" placeholder="Subject">
+        <input id="assignment_detail" placeholder="Assignment Detail">
+        <input id="due_date" type="date">
+        <select id="status">
+          <option value="Pending">Pending</option>
+          <option value="Done">Done</option>
+        </select>
+      </div>
+      <button class="admin-btn" onclick="addAssignment()">Add Assignment</button>
+    </section>
+
+    <section class="card">
+      <div class="section-title">
+        <h2>Update Balance</h2>
+        <span class="pill pill-green">Canteen / Fee Control</span>
+      </div>
+      <div class="form-grid">
+        <input id="b_student_id" placeholder="Student ID">
+        <input id="new_balance" type="number" placeholder="New Balance">
+      </div>
+      <button class="admin-btn" onclick="updateBalance()">Update Balance</button>
+    </section>
+
+    <section class="card">
+      <div class="section-title">
+        <h2>Mark Assignment Done</h2>
+        <span class="pill pill-dark">Status Update</span>
+      </div>
+      <div class="form-grid">
+        <input id="done_student_id" placeholder="Student ID">
+        <input id="done_subject" placeholder="Subject">
+      </div>
+      <button class="admin-btn dark-btn" onclick="markDone()">Mark Done</button>
+    </section>
+
+    <section class="card">
+      <div class="section-title">
+        <h2>System Tools</h2>
+        <span class="pill pill-dark">Testing</span>
+      </div>
+      <div class="tool-row">
+        <button class="admin-btn dark-btn" onclick="sendTelegramTest()">Send Telegram Test</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-title">
+        <h2>Admin Status</h2>
+        <span class="pill pill-green">Live</span>
+      </div>
+      <div id="adminStatus" class="status-box">Ready.</div>
+    </section>
+  </div>
+
+  <script>
+    <?!= include('AdminJS'); ?>
+  </script>
+</body>
+</html>
