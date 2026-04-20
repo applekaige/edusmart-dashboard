@@ -1,67 +1,143 @@
+* {
+  box-sizing: border-box;
+}
+
 body {
-  font-family: Arial, sans-serif;
-  background: #f4f6f8;
   margin: 0;
-  padding: 20px;
+  font-family: Arial, sans-serif;
+  background: #f3f6fb;
+  color: #1f2937;
 }
 
 .container {
-  max-width: 700px;
-  margin: auto;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px;
 }
 
-h1 {
+.header {
   text-align: center;
-  margin-bottom: 5px;
+  margin-bottom: 24px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 32px;
+  color: #0f172a;
 }
 
 .subtitle {
-  text-align: center;
-  color: #666;
-  margin-bottom: 20px;
+  margin-top: 8px;
+  color: #475569;
 }
 
 .card {
-  background: #fff;
-  border-radius: 14px;
+  background: #ffffff;
+  border-radius: 16px;
   padding: 20px;
   margin-bottom: 20px;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
 }
 
-.assignment {
-  border-left: 5px solid #3498db;
-  background: #f9fbff;
-  padding: 15px;
-  margin-bottom: 12px;
-  border-radius: 8px;
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
 }
 
-.assignment h3 {
-  margin: 0 0 8px 0;
+.profile-grid div {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 14px;
 }
 
-.assignment p {
+.label {
+  display: block;
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.assignment-list {
+  margin-top: 16px;
+}
+
+.assignment-card {
+  background: #f8fbff;
+  border-left: 6px solid #2563eb;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.assignment-card h3 {
+  margin: 0 0 10px;
+}
+
+.assignment-meta {
   margin: 6px 0;
+  color: #334155;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: bold;
+  margin-top: 8px;
+}
+
+.status-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-done {
+  background: #dcfce7;
+  color: #166534;
 }
 
 button {
-  background: #3498db;
-  color: #fff;
   border: none;
+  border-radius: 10px;
   padding: 10px 14px;
-  border-radius: 8px;
-  cursor: pointer;
-  margin-top: 8px;
   font-weight: bold;
+  cursor: pointer;
 }
 
-button.done {
-  background: #27ae60;
+#refreshBtn {
+  background: #0f172a;
+  color: white;
 }
 
-.status {
+.ack-btn {
+  margin-top: 12px;
+  background: #2563eb;
+  color: white;
+  width: 100%;
+}
+
+.ack-btn.done {
+  background: #16a34a;
+}
+
+.ack-btn:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.empty {
+  color: #64748b;
   text-align: center;
-  color: #666;
-  font-size: 14px;
+  padding: 20px 0;
 }
