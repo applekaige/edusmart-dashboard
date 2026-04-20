@@ -141,3 +141,27 @@ button {
   text-align: center;
   padding: 20px 0;
 }
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+#aiSummary {
+  line-height: 1.7;
+}
+
+.assignment-card.overdue {
+  border-left: 6px solid #dc2626;
+  background: #fff1f2;
+}
