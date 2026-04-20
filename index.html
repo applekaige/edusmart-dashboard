@@ -1,64 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduSmart 2026 | Parent Portal</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; display: flex; justify-content: center; }
-        .container { max-width: 450px; width: 100%; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; }
-        .card { background: #f9f9f9; padding: 20px; border-radius: 12px; margin: 15px 0; border-left: 6px solid #3498db; text-align: left; }
-        .ack-btn { background: #3498db; color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s; }
-        .ack-btn.done { background: #27ae60; }
-        .balance { font-size: 24px; color: #27ae60; font-weight: bold; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduSmart 2026 Dashboard</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-<div class="container">
-    <h2><i class="fa-solid fa-graduation-cap"></i> EduSmart 2026</h2>
-    <p>Student: <b>Sharrvesh</b></p>
-
-    <div class="card">
-        <h3>Mathematics</h3>
-        <p id="math-task">Loading...</p>
-        <button class="ack-btn" onclick="acknowledge(this, 'Mathematics')">ACKNOWLEDGE</button>
-    </div>
+  <div class="container">
+    <h1>EduSmart 2026</h1>
+    <p class="subtitle">Parent Dashboard</p>
 
     <div class="card">
-        <h3>Science</h3>
-        <p id="sci-task">Loading...</p>
-        <button class="ack-btn" onclick="acknowledge(this, 'Science')">ACKNOWLEDGE</button>
+      <h2>Student Profile</h2>
+      <p><b>Name:</b> <span id="studentName">Loading...</span></p>
+      <p><b>Class:</b> <span id="className">Loading...</span></p>
+      <p><b>Parent:</b> <span id="parentName">Loading...</span></p>
+      <p><b>Canteen Balance:</b> RM <span id="balance">0.00</span></p>
     </div>
 
-    <div class="card" style="border-left-color: #27ae60; text-align: center;">
-        <p>Canteen Balance</p>
-        <div class="balance">RM <span id="balance">0.00</span></div>
+    <div class="card">
+      <h2>Assignments</h2>
+      <div id="assignmentList">Loading assignments...</div>
     </div>
-</div>
 
-<script>
-    const SCRIPT_URL = "REPLACE_WITH_YOUR_NEW_WEB_APP_URL";
+    <div class="status" id="statusMsg">Connecting...</div>
+  </div>
 
-    async function loadData() {
-        const res = await fetch(SCRIPT_URL + "?read=true");
-        const data = await res.json();
-        document.getElementById('math-task').innerText = data.math_detail;
-        document.getElementById('sci-task').innerText = data.sci_detail;
-        document.getElementById('balance').innerText = data.balance;
-    }
-
-    async function acknowledge(btn, subject) {
-        btn.innerHTML = "Syncing...";
-        btn.disabled = true;
-        // Using no-cors to prevent browser security blocks
-        await fetch(`${SCRIPT_URL}?type=ACK&subject=${subject}`, { mode: 'no-cors' });
-        btn.innerHTML = "✅ SEEN";
-        btn.classList.add('done');
-    }
-
-    loadData();
-</script>
+  <script src="script.js"></script>
 </body>
 </html>
