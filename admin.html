@@ -3,60 +3,88 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>EduSmart 2026 Admin Panel</title>
+  <title>EduSmart 2026 | Admin Panel</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="container">
-    <header class="header">
-      <h1>EduSmart 2026 Admin Panel</h1>
-      <p class="subtitle">Teacher / Project Demo Control</p>
+    <header class="hero">
+      <div class="hero-badge">Teacher Control + Cloud Admin</div>
+      <h1>EduSmart 2026 Admin</h1>
+      <p class="subtitle">SJKT Sungai Ara STEM Project</p>
     </header>
 
     <section class="card">
-      <h2>Add Student</h2>
+      <div class="section-title">
+        <h2>Add Student</h2>
+        <span class="pill pill-blue">Student Database</span>
+      </div>
+
       <div class="form-grid">
         <input id="student_id" placeholder="Student ID (e.g. STU002)" />
         <input id="student_name" placeholder="Student Name" />
         <input id="class_name" placeholder="Class" />
         <input id="parent_name" placeholder="Parent Name" />
-        <input id="balance" placeholder="Balance" type="number" />
+        <input id="balance" type="number" placeholder="Balance" />
       </div>
-      <button onclick="addStudent()">Add Student</button>
+
+      <button class="admin-btn" onclick="addStudent()">Add Student</button>
     </section>
 
     <section class="card">
-      <h2>Add Assignment</h2>
+      <div class="section-title">
+        <h2>Add Assignment</h2>
+        <span class="pill pill-gold">Teacher Input</span>
+      </div>
+
       <div class="form-grid">
         <input id="a_student_id" placeholder="Student ID" />
         <input id="subject" placeholder="Subject" />
-        <input id="assignment_detail" placeholder="Assignment detail" />
+        <input id="assignment_detail" placeholder="Assignment Detail" />
         <input id="due_date" type="date" />
         <select id="status">
           <option value="Pending">Pending</option>
           <option value="Done">Done</option>
         </select>
       </div>
-      <button onclick="addAssignment()">Add Assignment</button>
+
+      <button class="admin-btn" onclick="addAssignment()">Add Assignment</button>
     </section>
 
     <section class="card">
-      <h2>Update Balance</h2>
+      <div class="section-title">
+        <h2>Update Balance</h2>
+        <span class="pill pill-green">Canteen / Fee Control</span>
+      </div>
+
       <div class="form-grid">
         <input id="b_student_id" placeholder="Student ID" />
         <input id="new_balance" type="number" placeholder="New Balance" />
       </div>
-      <button onclick="updateBalance()">Update Balance</button>
+
+      <button class="admin-btn" onclick="updateBalance()">Update Balance</button>
     </section>
 
     <section class="card">
-      <h2>System Tools</h2>
-      <button onclick="sendTelegramTest()">Send Telegram Test</button>
+      <div class="section-title">
+        <h2>System Tools</h2>
+        <span class="pill pill-dark">Testing</span>
+      </div>
+
+      <div class="tool-row">
+        <button class="admin-btn dark-btn" onclick="sendTelegramTest()">Send Telegram Test</button>
+      </div>
     </section>
 
     <section class="card">
-      <h2>Status</h2>
-      <p id="adminStatus">Ready.</p>
+      <div class="section-title">
+        <h2>Admin Status</h2>
+        <span class="pill pill-green">Live</span>
+      </div>
+
+      <div id="adminStatus" class="ai-summary">
+        Ready.
+      </div>
     </section>
   </div>
 
