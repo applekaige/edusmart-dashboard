@@ -1,4 +1,4 @@
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwGRRktezMyxBJ_Q_N0dPHAIKI0nBeQukF4USmKG-konnTiXeo3Jz8XOf12FNxCFxb-/exec";
+const SCRIPT_URL = "YOUR_APPS_SCRIPT_WEB_APP_URL";
 const STUDENT_ID = "STU001";
 
 document.getElementById("refreshBtn").addEventListener("click", init);
@@ -27,48 +27,53 @@ function escapeHtml(text) {
     .replace(/"/g, "&quot;");
 }
 
-async function fetchJson(url) {
-  const res = await fetch(url);
+async function fetchJson(url, options = {}) {
+  const res = await fetch(url, options);
   if (!res.ok) {
     throw new Error(`HTTP ${res.status}`);
   }
   return res.json();
 }
 
-async function loadStudentData() {
-  const url = `${SCRIPT_URL}?action=getStudentData&id=${encodeURIComponent(STUDENT_ID)}`;
-  const data = await fetchJson(url);
-
-  if (data.status !== "success") {
-    throw new Error(data.message || "Failed to load student data");
-  }
-
-  document.getElementById("studentId").innerText = data.student_id || "-";
-  document.getElementById("studentName").innerText = data.student_name || "-";
-  document.getElementById("className").innerText = data.class_name || "-";
-  document.getElementById("parentName").innerText = data.parent_name || "-";
-  document.getElementById("balance").innerText = formatCurrency(data.balance);
+function renderStudent(student) {
+  document.getElementById("studentId").innerText = student.student_id || "-";
+  document.getElementById("studentName").innerText = student.student_name || "-";
+  document.getElementById("className").innerText = student.class_name || "-";
+  document.getElementById("parentName").innerText = student.parent_name || "-";
+  document.getElementById("balance").innerText = formatCurrency(student.balance);
 }
 
-async function loadAssignments() {
-  const url = `${SCRIPT_URL}?action=getAssignments&id=${encodeURIComponent(STUDENT_ID)}`;
-  const data = await fetchJson(url);
+function renderAISummary(summary, pendingCount, overdueCount) {
+  const box = document.getElementById("aiSummary");
+  box.innerHTML = `
+    <strong>AI Summary:</strong> ${escapeHtml(summary)}<br>
+    <strong>Pending:</strong> ${pendingCount} |
+    <strong>Overdue:</strong> ${overdueCount}
+  `;
+}
 
-  if (data.status !== "success") {
-    throw new Error(data.message || "Failed to load assignments");
-  }
-
+function renderAssignments(assignments) {
   const container = document.getElementById("assignmentList");
   container.innerHTML = "";
 
-  if (!data.assignments || data.assignments.length === 0) {
+  if (!assignments || assignments.length === 0) {
     container.innerHTML = `<div class="empty">No assignments found.</div>`;
     return;
   }
 
-  data.assignments.forEach((item) => {
+  assignments.sort((a, b) => new Date(a.due_date) - new Date(b.due_date));
+
+  assignments.forEach((item) => {
     const card = document.createElement("div");
     card.className = "assignment-card";
+
+    const dueDateObj = new Date(item.due_date);
+    const now = new Date();
+    const isOverdue = !isNaN(dueDateObj.getTime()) && dueDateObj < now && String(item.status).toLowerCase() === "pending";
+
+    if (isOverdue) {
+      card.classList.add("overdue");
+    }
 
     const safeSubject = escapeHtml(item.subject);
     const safeDetail = escapeHtml(item.detail);
@@ -91,8 +96,7 @@ async function loadAssignments() {
       btn.disabled = true;
 
       try {
-        const ackUrl =
-          `${SCRIPT_URL}?action=ack&id=${encodeURIComponent(STUDENT_ID)}&subject=${encodeURIComponent(item.subject)}`;
+        const ackUrl = `${SCRIPT_URL}?action=ack&id=${encodeURIComponent(STUDENT_ID)}&subject=${encodeURIComponent(item.subject)}`;
         const ackData = await fetchJson(ackUrl);
 
         if (ackData.status === "success") {
@@ -112,25 +116,24 @@ async function loadAssignments() {
   });
 }
 
-async function checkHealth() {
-  const url = `${SCRIPT_URL}?action=health`;
-  const data = await fetchJson(url);
-
-  if (data.status !== "online") {
-    throw new Error("Backend not healthy");
-  }
-
-  document.getElementById("statusMsg").innerText =
-    `Backend online | Last sync: ${new Date().toLocaleString("en-MY")}`;
-}
-
 async function init() {
   document.getElementById("statusMsg").innerText = "Loading data...";
 
   try {
-    await checkHealth();
-    await loadStudentData();
-    await loadAssignments();
+    const data = await fetchJson(
+      `${SCRIPT_URL}?action=getDashboardBundle&id=${encodeURIComponent(STUDENT_ID)}`
+    );
+
+    if (data.status !== "success") {
+      throw new Error(data.message || "Failed to load dashboard");
+    }
+
+    renderStudent(data.student);
+    renderAISummary(data.ai_summary, data.pending_count, data.overdue_count);
+    renderAssignments(data.assignments);
+
+    document.getElementById("statusMsg").innerText =
+      `Backend online | Last sync: ${new Date().toLocaleString("en-MY")}`;
   } catch (error) {
     document.getElementById("statusMsg").innerText =
       `Connection failed: ${error.message}`;
