@@ -1,4 +1,4 @@
-const SCRIPT_URL = "YOUR_APPS_SCRIPT_WEB_APP_URL";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwGRRktezMyxBJ_Q_N0dPHAIKI0nBeQukF4USmKG-konnTiXeo3Jz8XOf12FNxCFxb-/exec";
 
 async function postJson(body) {
   const res = await fetch(SCRIPT_URL, {
