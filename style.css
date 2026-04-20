@@ -322,6 +322,30 @@ select:focus {
   .subtitle {
     font-size: 16px;
   }
+  .admin-btn {
+  background: #2563eb;
+  color: white;
+  min-width: 180px;
+}
+
+.admin-btn:hover {
+  background: #1d4ed8;
+}
+
+.dark-btn {
+  background: #0f172a;
+}
+
+.dark-btn:hover {
+  background: #020617;
+}
+
+.tool-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
 
   .card {
     padding: 18px;
