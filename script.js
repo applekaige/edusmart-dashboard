@@ -1,4 +1,4 @@
-const SCRIPT_URL = "YOUR_APPS_SCRIPT_WEB_APP_URL";
+const SCRIPT_URL =  "https://script.google.com/macros/s/AKfycbwGRRktezMyxBJ_Q_N0dPHAIKI0nBeQukF4USmKG-konnTiXeo3Jz8XOf12FNxCFxb-/exec";";
 const STUDENT_ID = "STU001";
 
 document.getElementById("refreshBtn").addEventListener("click", init);
