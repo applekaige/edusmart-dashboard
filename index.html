@@ -3,111 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduSmart 2026 | Parent Dashboard</title>
+    <title>EduSmart 2026 | Parent Portal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --primary: #2c3e50;
-            --accent: #3498db;
-            --success: #27ae60;
-            --bg: #f4f7f6;
-        }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--primary); }
-        .container { max-width: 500px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h1 { text-align: center; color: var(--primary); font-size: 24px; margin-bottom: 5px; }
-        .student-id { text-align: center; color: #7f8c8d; font-size: 14px; margin-bottom: 25px; }
-        
-        .card { border-left: 5px solid var(--accent); background: #f9f9f9; padding: 15px; margin-bottom: 15px; border-radius: 8px; position: relative; }
-        .card h3 { margin: 0 0 10px 0; font-size: 18px; }
-        .card p { margin: 5px 0; font-size: 14px; line-height: 1.4; }
-        
-        .ack-btn { 
-            background: var(--accent); color: white; border: none; padding: 8px 15px; 
-            border-radius: 5px; cursor: pointer; font-weight: 600; width: 100%; margin-top: 10px;
-            transition: 0.3s;
-        }
-        .ack-btn.done { background: var(--success); cursor: default; }
-        
-        .balance-box { background: #e8f4fd; padding: 15px; border-radius: 8px; text-align: center; margin-top: 20px; }
-        .balance-box span { font-size: 22px; font-weight: bold; color: var(--success); }
-        
-        .footer { text-align: center; font-size: 10px; color: #bdc3c7; margin-top: 30px; text-transform: uppercase; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; display: flex; justify-content: center; }
+        .container { max-width: 450px; width: 100%; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; }
+        .card { background: #f9f9f9; padding: 20px; border-radius: 12px; margin: 15px 0; border-left: 6px solid #3498db; text-align: left; }
+        .ack-btn { background: #3498db; color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s; }
+        .ack-btn.done { background: #27ae60; }
+        .balance { font-size: 24px; color: #27ae60; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1><i class="fa-solid fa-graduation-cap"></i> EduSmart 2026</h1>
-    <div class="student-id">Student: Sharrvesh | ID: 2026-SH-01</div>
+    <h2><i class="fa-solid fa-graduation-cap"></i> EduSmart 2026</h2>
+    <p>Student: <b>Sharrvesh</b></p>
 
     <div class="card">
         <h3>Mathematics</h3>
-        <p id="math-task"><i class="fa-solid fa-spinner fa-spin"></i> Loading latest task...</p>
+        <p id="math-task">Loading...</p>
         <button class="ack-btn" onclick="acknowledge(this, 'Mathematics')">ACKNOWLEDGE</button>
     </div>
 
     <div class="card">
         <h3>Science</h3>
-        <p id="sci-task"><i class="fa-solid fa-spinner fa-spin"></i> Loading latest task...</p>
+        <p id="sci-task">Loading...</p>
         <button class="ack-btn" onclick="acknowledge(this, 'Science')">ACKNOWLEDGE</button>
     </div>
 
-    <div class="balance-box">
-        <p>SmartCard Canteen Balance</p>
-        RM <span id="balance">0.00</span>
+    <div class="card" style="border-left-color: #27ae60; text-align: center;">
+        <p>Canteen Balance</p>
+        <div class="balance">RM <span id="balance">0.00</span></div>
     </div>
-
-    <div class="footer">Developed by TS. DR. PUVANESVARAN GUNALAN</div>
 </div>
 
 <script>
-    // YOUR LIVE GOOGLE SCRIPT URL
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby7UfBGs2SKIqYwe9po3kzVsAH0P3tPGP2HZs0DNns/dev";
+    const SCRIPT_URL = "REPLACE_WITH_YOUR_NEW_WEB_APP_URL";
 
-    // 1. AUTO-LOAD DATA ON STARTUP
     async function loadData() {
-        try {
-            const response = await fetch(`${SCRIPT_URL}?read=true`);
-            const data = await response.json();
-            
-            document.getElementById('math-task').innerText = data.math_detail;
-            document.getElementById('sci-task').innerText = data.sci_detail;
-            document.getElementById('balance').innerText = data.balance;
-        } catch (e) {
-            console.error("Sync Error", e);
-            document.getElementById('math-task').innerText = "Update available via Cloud sync.";
-        }
+        const res = await fetch(SCRIPT_URL + "?read=true");
+        const data = await res.json();
+        document.getElementById('math-task').innerText = data.math_detail;
+        document.getElementById('sci-task').innerText = data.sci_detail;
+        document.getElementById('balance').innerText = data.balance;
     }
 
-    // 2. ACKNOWLEDGE FUNCTION (Triggers Telegram)
     async function acknowledge(btn, subject) {
-        // Visual feedback
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Syncing...';
+        btn.innerHTML = "Syncing...";
         btn.disabled = true;
-
-        const triggerUrl = `${SCRIPT_URL}?type=ACK&subject=${subject}&id=Sharrvesh`;
-
-        try {
-            // 'no-cors' is mandatory for triggering Google Scripts from a static HTML
-            await fetch(triggerUrl, { 
-                mode: 'no-cors',
-                method: 'GET'
-            });
-
-            // If we reach here, the signal was sent
-            btn.innerHTML = '<i class="fa-solid fa-check-double"></i> SEEN';
-            btn.classList.add('done');
-        } catch (e) {
-            console.error("Telegram Trigger Failed", e);
-            btn.innerHTML = "Retry";
-            btn.disabled = false;
-        }
+        // Using no-cors to prevent browser security blocks
+        await fetch(`${SCRIPT_URL}?type=ACK&subject=${subject}`, { mode: 'no-cors' });
+        btn.innerHTML = "✅ SEEN";
+        btn.classList.add('done');
     }
 
-    // Run on page load
     loadData();
 </script>
-
 </body>
 </html>
