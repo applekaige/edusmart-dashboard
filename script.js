@@ -1,7 +1,10 @@
-const SCRIPT_URL =  "https://script.google.com/macros/s/AKfycbwGRRktezMyxBJ_Q_N0dPHAIKI0nBeQukF4USmKG-konnTiXeo3Jz8XOf12FNxCFxb-/exec";";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwGRRktezMyxBJ_Q_N0dPHAIKI0nBeQukF4USmKG-konnTiXeo3Jz8XOf12FNxCFxb-/exec";
 const STUDENT_ID = "STU001";
 
-document.getElementById("refreshBtn").addEventListener("click", init);
+const refreshBtn = document.getElementById("refreshBtn");
+if (refreshBtn) {
+  refreshBtn.addEventListener("click", init);
+}
 
 function formatCurrency(value) {
   const number = Number(value || 0);
@@ -11,7 +14,7 @@ function formatCurrency(value) {
 function formatDate(value) {
   if (!value) return "-";
   const date = new Date(value);
-  if (isNaN(date.getTime())) return value;
+  if (isNaN(date.getTime())) return String(value);
   return date.toLocaleDateString("en-MY", {
     year: "numeric",
     month: "short",
@@ -28,10 +31,13 @@ function escapeHtml(text) {
 }
 
 async function fetchJson(url, options = {}) {
+  console.log("Fetching:", url);
   const res = await fetch(url, options);
+
   if (!res.ok) {
     throw new Error(`HTTP ${res.status}`);
   }
+
   return res.json();
 }
 
@@ -45,6 +51,8 @@ function renderStudent(student) {
 
 function renderAISummary(summary, pendingCount, overdueCount) {
   const box = document.getElementById("aiSummary");
+  if (!box) return;
+
   box.innerHTML = `
     <strong>AI Summary:</strong> ${escapeHtml(summary)}<br>
     <strong>Pending:</strong> ${pendingCount} |
@@ -69,7 +77,10 @@ function renderAssignments(assignments) {
 
     const dueDateObj = new Date(item.due_date);
     const now = new Date();
-    const isOverdue = !isNaN(dueDateObj.getTime()) && dueDateObj < now && String(item.status).toLowerCase() === "pending";
+    const isOverdue =
+      !isNaN(dueDateObj.getTime()) &&
+      dueDateObj < now &&
+      String(item.status).toLowerCase() === "pending";
 
     if (isOverdue) {
       card.classList.add("overdue");
@@ -120,9 +131,8 @@ async function init() {
   document.getElementById("statusMsg").innerText = "Loading data...";
 
   try {
-    const data = await fetchJson(
-      `${SCRIPT_URL}?action=getDashboardBundle&id=${encodeURIComponent(STUDENT_ID)}`
-    );
+    const bundleUrl = `${SCRIPT_URL}?action=getDashboardBundle&id=${encodeURIComponent(STUDENT_ID)}`;
+    const data = await fetchJson(bundleUrl);
 
     if (data.status !== "success") {
       throw new Error(data.message || "Failed to load dashboard");
@@ -137,6 +147,7 @@ async function init() {
   } catch (error) {
     document.getElementById("statusMsg").innerText =
       `Connection failed: ${error.message}`;
+    console.error(error);
   }
 }
 
