@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduSmart 2026 Admin Panel</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>EduSmart 2026 Admin Panel</h1>
+      <p class="subtitle">Teacher / Project Demo Control</p>
+    </header>
+
+    <section class="card">
+      <h2>Add Student</h2>
+      <div class="form-grid">
+        <input id="student_id" placeholder="Student ID (e.g. STU002)" />
+        <input id="student_name" placeholder="Student Name" />
+        <input id="class_name" placeholder="Class" />
+        <input id="parent_name" placeholder="Parent Name" />
+        <input id="balance" placeholder="Balance" type="number" />
+      </div>
+      <button onclick="addStudent()">Add Student</button>
+    </section>
+
+    <section class="card">
+      <h2>Add Assignment</h2>
+      <div class="form-grid">
+        <input id="a_student_id" placeholder="Student ID" />
+        <input id="subject" placeholder="Subject" />
+        <input id="assignment_detail" placeholder="Assignment detail" />
+        <input id="due_date" type="date" />
+        <select id="status">
+          <option value="Pending">Pending</option>
+          <option value="Done">Done</option>
+        </select>
+      </div>
+      <button onclick="addAssignment()">Add Assignment</button>
+    </section>
+
+    <section class="card">
+      <h2>Update Balance</h2>
+      <div class="form-grid">
+        <input id="b_student_id" placeholder="Student ID" />
+        <input id="new_balance" type="number" placeholder="New Balance" />
+      </div>
+      <button onclick="updateBalance()">Update Balance</button>
+    </section>
+
+    <section class="card">
+      <h2>System Tools</h2>
+      <button onclick="sendTelegramTest()">Send Telegram Test</button>
+    </section>
+
+    <section class="card">
+      <h2>Status</h2>
+      <p id="adminStatus">Ready.</p>
+    </section>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
