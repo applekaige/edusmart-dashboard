@@ -1,84 +1,163 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>EduSmart 2026 | Parent Dashboard</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>EduSmart 2026</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      font-family: Arial;
+      padding: 20px;
+      background: #f4f6f8;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    .card {
+      background: white;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 10px;
+      width: 100%;
+      border: none;
+      border-radius: 6px;
+      background: #2563eb;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .helper {
+      background: #eef2ff;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 8px;
+    }
+  </style>
 </head>
+
 <body>
-  <div class="container">
-    <header class="hero">
-      <div class="hero-badge">AI + IoT + Coding + Cloud</div>
-      <h1>EduSmart 2026</h1>
-      <p class="subtitle">SJKT Sungai Ara STEM Project</p>
-    </header>
 
-    <section class="card profile-card">
-      <div class="section-title">
-        <h2>Student Profile</h2>
-        <span class="pill pill-dark">Live Data</span>
-      </div>
+<h1>EduSmart 2026</h1>
 
-      <div class="profile-grid">
-        <div class="info-box">
-          <span class="label">Student ID</span>
-          <span id="studentId">Loading...</span>
-        </div>
+<div class="card">
+  <h3 id="studentName">Loading...</h3>
+  <p id="balance"></p>
+</div>
 
-        <div class="info-box">
-          <span class="label">Student Name</span>
-          <span id="studentName">Loading...</span>
-        </div>
+<div class="card">
+  <h3>AI Summary</h3>
+  <p id="aiSummary">Loading...</p>
+</div>
 
-        <div class="info-box">
-          <span class="label">Class</span>
-          <span id="className">Loading...</span>
-        </div>
+<div class="card">
+  <h3>Assignments</h3>
+  <div id="assignments">Loading...</div>
+</div>
 
-        <div class="info-box">
-          <span class="label">Parent</span>
-          <span id="parentName">Loading...</span>
-        </div>
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwGRRktezMyxBJ_Q_N0dPHAIKI0nBeQukF4USmKG-konnTiXeo3Jz8XOf12FNxCFxb-/exec";
+const STUDENT_ID = "STU001";
 
-        <div class="info-box balance-box">
-          <span class="label">Balance</span>
-          <span id="balance">RM 0.00</span>
-        </div>
-      </div>
-    </section>
+/* JSONP */
+function fetchJsonp(url) {
+  return new Promise((resolve, reject) => {
+    const callbackName = "cb_" + Math.random().toString(36).substring(2);
 
-    <section class="card ai-card">
-      <div class="section-title">
-        <h2>AI Insights</h2>
-        <span class="pill pill-blue">Smart Summary</span>
-      </div>
-      <div id="aiSummary" class="ai-summary">Loading AI summary...</div>
-    </section>
+    window[callbackName] = function(data) {
+      resolve(data);
+      delete window[callbackName];
+    };
 
-    <section class="card">
-      <div class="section-head">
-        <div class="section-title">
-          <h2>Assignments</h2>
-          <span class="pill pill-gold">Parent Action Required</span>
-        </div>
-        <button id="refreshBtn" class="refresh-btn">Refresh</button>
-      </div>
+    const script = document.createElement("script");
+    script.src = url + "&callback=" + callbackName;
+    script.onerror = reject;
 
-      <div id="assignmentList" class="assignment-list">
-        Loading assignments...
-      </div>
-    </section>
+    document.body.appendChild(script);
+  });
+}
 
-    <section class="card status-card">
-      <div class="section-title">
-        <h2>System Status</h2>
-        <span class="pill pill-green">Online</span>
-      </div>
-      <p id="statusMsg">Connecting...</p>
-    </section>
-  </div>
+/* Load dashboard */
+async function loadDashboard() {
+  try {
+    const data = await fetchJsonp(
+      `${SCRIPT_URL}?action=getDashboardBundle&id=${STUDENT_ID}`
+    );
 
-  <script src="script.js"></script>
+    document.getElementById("studentName").innerText =
+      data.student.student_name;
+
+    document.getElementById("balance").innerText =
+      "Balance: RM " + data.student.balance;
+
+    document.getElementById("aiSummary").innerText =
+      data.ai_summary;
+
+    renderAssignments(data.assignments);
+
+  } catch (err) {
+    document.body.innerHTML = "<h2>Connection error</h2>";
+  }
+}
+
+/* Render assignments */
+function renderAssignments(list) {
+  const container = document.getElementById("assignments");
+  container.innerHTML = "";
+
+  list.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "card";
+
+    div.innerHTML = `
+      <h4>${item.subject}</h4>
+      <p>${item.detail}</p>
+
+      <button onclick="ack('${item.subject}')">ACKNOWLEDGE</button>
+      <button onclick="getHelp('${item.subject}')">AI HELP</button>
+
+      <div id="help-${item.subject}"></div>
+    `;
+
+    container.appendChild(div);
+  });
+}
+
+/* ACK */
+async function ack(subject) {
+  await fetchJsonp(
+    `${SCRIPT_URL}?action=ack&id=${STUDENT_ID}&subject=${subject}`
+  );
+
+  alert("ACK sent!");
+}
+
+/* AI Helper */
+async function getHelp(subject) {
+  const data = await fetchJsonp(
+    `${SCRIPT_URL}?action=getAssignmentHelper&id=${STUDENT_ID}&subject=${subject}`
+  );
+
+  document.getElementById(`help-${subject}`).innerHTML = `
+    <div class="helper">
+      <b>Explanation:</b> ${data.simple_explanation}<br>
+      <b>Action:</b> ${data.parent_action}
+    </div>
+  `;
+}
+
+/* INIT */
+loadDashboard();
+</script>
+
 </body>
 </html>
