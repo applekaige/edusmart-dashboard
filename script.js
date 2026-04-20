@@ -30,12 +30,27 @@ function escapeHtml(text) {
     .replace(/"/g, "&quot;");
 }
 
-async function fetchJson(url, options = {}) {
-  const res = await fetch(url, options);
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status}`);
-  }
-  return res.json();
+function fetchJsonp(url) {
+  return new Promise((resolve, reject) => {
+    const callbackName = "jsonp_cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+    const script = document.createElement("script");
+
+    window[callbackName] = function(data) {
+      resolve(data);
+      delete window[callbackName];
+      script.remove();
+    };
+
+    script.onerror = function() {
+      reject(new Error("JSONP request failed"));
+      delete window[callbackName];
+      script.remove();
+    };
+
+    const separator = url.includes("?") ? "&" : "?";
+    script.src = `${url}${separator}callback=${callbackName}`;
+    document.body.appendChild(script);
+  });
 }
 
 function renderStudent(student) {
@@ -105,7 +120,7 @@ function renderAssignments(assignments) {
 
       try {
         const ackUrl = `${SCRIPT_URL}?action=ack&id=${encodeURIComponent(STUDENT_ID)}&subject=${encodeURIComponent(item.subject)}`;
-        const ackData = await fetchJson(ackUrl);
+        const ackData = await fetchJsonp(ackUrl);
 
         if (ackData.status === "success") {
           btn.innerText = "✅ SEEN";
@@ -129,7 +144,7 @@ async function init() {
 
   try {
     const bundleUrl = `${SCRIPT_URL}?action=getDashboardBundle&id=${encodeURIComponent(STUDENT_ID)}`;
-    const data = await fetchJson(bundleUrl);
+    const data = await fetchJsonp(bundleUrl);
 
     if (data.status !== "success") {
       throw new Error(data.message || "Failed to load dashboard");
