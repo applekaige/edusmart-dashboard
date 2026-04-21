@@ -130,6 +130,7 @@ function renderAssignments(assignments) {
       <button class="helper-btn">Help Me Understand</button>
       <div class="helper-box" style="display:none; margin-top:12px;"></div>
       <button class="ack-btn">ACKNOWLEDGE</button>
+      <button class="voice-btn">🔊 Voice Explain</button>
     `;
 
     const helperBtn = card.querySelector(".helper-btn");
@@ -190,7 +191,12 @@ function renderAssignments(assignments) {
     container.appendChild(card);
   });
 }
-
+function speakText(text) {
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = "en-MY";
+  utter.rate = 1.0;
+  speechSynthesis.speak(utter);
+}
 async function init() {
   document.getElementById("statusMsg").innerText = "Loading data...";
 
