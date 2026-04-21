@@ -1,5 +1,4 @@
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwGRRktezMyxBJ_Q_N0dPHAIKI0nBeQukF4USmKG-konnTiXeo3Jz8XOf12FNxCFxb-/exec";
-
 const refreshBtn = document.getElementById("refreshAnalyticsBtn");
 if (refreshBtn) {
   refreshBtn.addEventListener("click", initAnalytics);
