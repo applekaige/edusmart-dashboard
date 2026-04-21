@@ -104,27 +104,31 @@ function renderNotAckedTable(items) {
 }
 
 async function initAnalytics() {
-  document.getElementById("analyticsStatusMsg").innerText = "Loading analytics...";
+  document.getElementById("analyticsStatusMsg").innerText = "Loading...";
 
   try {
     const url = `${SCRIPT_URL}?action=getTeacherAnalytics`;
+    console.log("Calling API:", url);
+
     const data = await fetchJsonp(url);
+    console.log("API response:", data);
 
     if (data.status !== "success") {
-      throw new Error(data.message || "Failed to load analytics");
+      throw new Error(data.message);
     }
 
     renderSummary(data);
     renderInsight(data);
-    renderNotAckedTable(data.not_acked || []);
+    renderNotAckedTable(data.not_acked);
 
-    document.getElementById("analyticsStatusMsg").innerText =
-      `Analytics online | Last sync: ${new Date().toLocaleString("en-MY")}`;
+    document.getElementById("analyticsStatusMsg").innerText = "Connected";
+
   } catch (error) {
+    console.error("ERROR:", error);
     document.getElementById("analyticsStatusMsg").innerText =
       `Connection failed: ${error.message}`;
-    console.error(error);
   }
 }
+
 
 initAnalytics();
