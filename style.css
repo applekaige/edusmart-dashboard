@@ -16,7 +16,14 @@
   --gold-soft: #fef3c7;
   --red: #dc2626;
   --red-soft: #fff1f2;
+  --purple: #7c3aed;
+  --purple-soft: #f5f3ff;
+  --cyan: #0ea5e9;
   --shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
@@ -161,6 +168,7 @@ body {
   font-size: 18px;
   font-weight: 600;
   color: var(--text);
+  word-break: break-word;
 }
 
 #balance {
@@ -211,6 +219,7 @@ body {
   margin: 8px 0;
   color: #334155;
   font-size: 16px;
+  line-height: 1.5;
 }
 
 .status-badge {
@@ -246,14 +255,37 @@ button:hover {
   transform: translateY(-1px);
 }
 
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .refresh-btn {
   background: var(--blue-dark);
   color: white;
   min-width: 104px;
 }
 
+.helper-btn {
+  margin-top: 14px;
+  background: var(--purple);
+  color: white;
+  width: 100%;
+  font-size: 15px;
+}
+
+.helper-box {
+  background: var(--purple-soft);
+  border: 1px solid #ddd6fe;
+  color: #4c1d95;
+  border-radius: 12px;
+  padding: 14px;
+  line-height: 1.6;
+}
+
 .ack-btn {
-  margin-top: 16px;
+  margin-top: 14px;
   background: #2f66e0;
   color: white;
   width: 100%;
@@ -264,21 +296,12 @@ button:hover {
   background: var(--green);
 }
 
-.helper-btn {
-  margin-top: 14px;
-  background: #7c3aed;
+.voice-btn {
+  margin-top: 10px;
+  background: var(--cyan);
   color: white;
   width: 100%;
   font-size: 15px;
-}
-
-.helper-box {
-  background: #f5f3ff;
-  border: 1px solid #ddd6fe;
-  color: #4c1d95;
-  border-radius: 12px;
-  padding: 14px;
-  line-height: 1.6;
 }
 
 .attachment-box {
@@ -300,6 +323,7 @@ button:hover {
   margin: 14px 0 0;
   color: #475569;
   font-size: 15px;
+  line-height: 1.5;
 }
 
 .empty {
@@ -307,6 +331,34 @@ button:hover {
   padding: 30px 12px;
   color: var(--muted);
   font-size: 16px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  margin-top: 16px;
+}
+
+.analytics-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+.analytics-table th,
+.analytics-table td {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.analytics-table th {
+  background: #f8fafc;
+  color: #334155;
+}
+
+.analytics-table tr:hover td {
+  background: #f8fbff;
 }
 
 @media (max-width: 768px) {
@@ -334,37 +386,4 @@ button:hover {
   .assignment-card h3 {
     font-size: 20px;
   }
-}
-.voice-btn {
-  margin-top: 10px;
-  background: #0ea5e9;
-  color: white;
-  width: 100%;
-}
-.table-wrap {
-  overflow-x: auto;
-  margin-top: 16px;
-}
-
-.analytics-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #fff;
-}
-
-.analytics-table th,
-.analytics-table td {
-  border-bottom: 1px solid #e5e7eb;
-  padding: 12px 14px;
-  text-align: left;
-  font-size: 14px;
-}
-
-.analytics-table th {
-  background: #f8fafc;
-  color: #334155;
-}
-
-.analytics-table tr:hover td {
-  background: #f8fbff;
 }
