@@ -104,50 +104,34 @@ function renderAssignments(assignments) {
     const safeStatus = escapeHtml(item.status || "Pending");
     const dueDate = formatDate(item.due_date);
 
-    card.innerHTML = `
-      <h3>${safeSubject}</h3>
-      <p class="assignment-meta"><strong>Task:</strong> ${safeDetail}</p>
-      <p class="assignment-meta"><strong>Due Date:</strong> ${escapeHtml(dueDate)}</p>
-      <span class="status-badge ${safeStatus.toLowerCase() === "pending" ? "status-pending" : "status-done"}">
-        ${safeStatus}
-      </span>
-      <button class="helper-btn">Help Me Understand</button>
-      <div class="helper-box" style="display:none; margin-top:12px;"></div>
-      <button class="ack-btn">ACKNOWLEDGE</button>
-    `;
+  
+const attachmentHtml = item.attachment_url
+  ? (
+      item.attachment_type === "image"
+        ? `<div class="attachment-box">
+             <strong>Attachment:</strong><br>
+             <img src="${escapeHtml(item.attachment_url)}" alt="${escapeHtml(item.attachment_name)}" class="assignment-image">
+             <div><a href="${escapeHtml(item.attachment_url)}" target="_blank">Open image</a></div>
+           </div>`
+        : `<div class="attachment-box">
+             <strong>Attachment:</strong>
+             <div><a href="${escapeHtml(item.attachment_url)}" target="_blank">${escapeHtml(item.attachment_name || "Open file")}</a></div>
+           </div>`
+    )
+  : "";
 
-    const helperBtn = card.querySelector(".helper-btn");
-    const helperBox = card.querySelector(".helper-box");
-
-    helperBtn.addEventListener("click", async () => {
-      helperBtn.innerText = "Loading help...";
-      helperBtn.disabled = true;
-
-      try {
-        const helperUrl =
-          `${SCRIPT_URL}?action=getAssignmentHelper&id=${encodeURIComponent(STUDENT_ID)}&subject=${encodeURIComponent(item.subject)}`;
-        const helperData = await fetchJsonp(helperUrl);
-
-        if (helperData.status === "success") {
-          helperBox.style.display = "block";
-          helperBox.innerHTML = `
-            <div><strong>Simple Explanation:</strong> ${escapeHtml(helperData.simple_explanation)}</div>
-            <div style="margin-top:8px;"><strong>Parent Action:</strong> ${escapeHtml(helperData.parent_action)}</div>
-            <div style="margin-top:8px;"><strong>Materials Needed:</strong> ${escapeHtml(helperData.materials_needed)}</div>
-            <div style="margin-top:8px;"><strong>Estimated Time:</strong> ${escapeHtml(helperData.estimated_time)}</div>
-            <div style="margin-top:8px;"><strong>Note:</strong> ${escapeHtml(helperData.encouragement)}</div>
-          `;
-          helperBtn.innerText = "AI Help Ready";
-        } else {
-          helperBtn.innerText = "Try Again";
-          helperBtn.disabled = false;
-        }
-      } catch (error) {
-        helperBtn.innerText = "Try Again";
-        helperBtn.disabled = false;
-      }
-    });
-
+card.innerHTML = `
+  <h3>${safeSubject}</h3>
+  <p class="assignment-meta"><strong>Task:</strong> ${safeDetail}</p>
+  <p class="assignment-meta"><strong>Due Date:</strong> ${escapeHtml(dueDate)}</p>
+  ${attachmentHtml}
+  <span class="status-badge ${safeStatus.toLowerCase() === "pending" ? "status-pending" : "status-done"}">
+    ${safeStatus}
+  </span>
+  <button class="helper-btn">Help Me Understand</button>
+  <div class="helper-box" style="display:none; margin-top:12px;"></div>
+  <button class="ack-btn">ACKNOWLEDGE</button>
+`;
     const btn = card.querySelector(".ack-btn");
     btn.addEventListener("click", async () => {
       btn.innerText = "Syncing...";
