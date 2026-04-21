@@ -335,3 +335,9 @@ button:hover {
     font-size: 20px;
   }
 }
+.voice-btn {
+  margin-top: 10px;
+  background: #0ea5e9;
+  color: white;
+  width: 100%;
+}
