@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduSmart 2026 | Teacher Analytics</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="hero">
+      <div class="hero-badge">Teacher Analytics + AI Insights</div>
+      <h1>EduSmart 2026 Analytics</h1>
+      <p class="subtitle">Teacher dashboard for assignment monitoring</p>
+    </header>
+
+    <section class="card">
+      <div class="section-head">
+        <div class="section-title">
+          <h2>Overview</h2>
+          <span class="pill pill-dark">Live Data</span>
+        </div>
+        <button id="refreshAnalyticsBtn" class="refresh-btn">Refresh</button>
+      </div>
+
+      <div class="profile-grid">
+        <div class="info-box">
+          <span class="label">Total Students</span>
+          <span id="totalStudents">0</span>
+        </div>
+
+        <div class="info-box">
+          <span class="label">Pending Assignments</span>
+          <span id="pendingAssignments">0</span>
+        </div>
+
+        <div class="info-box">
+          <span class="label">Overdue Assignments</span>
+          <span id="overdueAssignments">0</span>
+        </div>
+
+        <div class="info-box">
+          <span class="label">Not Acknowledged</span>
+          <span id="notAckedCount">0</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card ai-card">
+      <div class="section-title">
+        <h2>Teacher Insight</h2>
+        <span class="pill pill-blue">Smart Summary</span>
+      </div>
+      <div id="teacherInsight" class="ai-summary">Loading analytics insight...</div>
+    </section>
+
+    <section class="card">
+      <div class="section-title">
+        <h2>Not Acknowledged List</h2>
+        <span class="pill pill-gold">Follow Up Needed</span>
+      </div>
+
+      <div class="table-wrap">
+        <table class="analytics-table">
+          <thead>
+            <tr>
+              <th>Student ID</th>
+              <th>Subject</th>
+            </tr>
+          </thead>
+          <tbody id="notAckedTableBody">
+            <tr>
+              <td colspan="2">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card status-card">
+      <div class="section-title">
+        <h2>System Status</h2>
+        <span class="pill pill-green">Online</span>
+      </div>
+      <p id="analyticsStatusMsg">Connecting...</p>
+    </section>
+  </div>
+
+  <script src="analytics.js"></script>
+</body>
+</html>
