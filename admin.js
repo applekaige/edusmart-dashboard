@@ -1,88 +1,203 @@
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwGRRktezMyxBJ_Q_N0dPHAIKI0nBeQukF4USmKG-konnTiXeo3Jz8XOf12FNxCFxb-/exec";
+const params = new URLSearchParams(window.location.search);
+const STUDENT_ID = params.get("id") || "STU001";
 
-async function postJson(body) {
-  const res = await fetch(SCRIPT_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "text/plain;charset=utf-8"
-    },
-    body: JSON.stringify(body)
+const refreshBtn = document.getElementById("refreshBtn");
+if (refreshBtn) {
+  refreshBtn.addEventListener("click", init);
+}
+
+function formatCurrency(value) {
+  const number = Number(value || 0);
+  return `RM ${number.toFixed(2)}`;
+}
+
+function formatDate(value) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return String(value);
+  return date.toLocaleDateString("en-MY", {
+    year: "numeric",
+    month: "short",
+    day: "numeric"
   });
-
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status}`);
-  }
-
-  return res.json();
 }
 
-function setStatus(message) {
-  document.getElementById("adminStatus").innerText = message;
+function escapeHtml(text) {
+  return String(text ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
-async function addStudent() {
-  try {
-    setStatus("Adding student...");
+function fetchJsonp(url) {
+  return new Promise((resolve, reject) => {
+    const callbackName = "jsonp_cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+    const script = document.createElement("script");
 
-    const payload = {
-      action: "addStudent",
-      student_id: document.getElementById("student_id").value.trim(),
-      student_name: document.getElementById("student_name").value.trim(),
-      class_name: document.getElementById("class_name").value.trim(),
-      parent_name: document.getElementById("parent_name").value.trim(),
-      balance: document.getElementById("balance").value.trim()
+    window[callbackName] = function(data) {
+      resolve(data);
+      delete window[callbackName];
+      script.remove();
     };
 
-    const data = await postJson(payload);
-    setStatus(data.message || "Student added.");
-  } catch (error) {
-    setStatus("Error: " + error.message);
-  }
-}
-
-async function addAssignment() {
-  try {
-    setStatus("Adding assignment...");
-
-    const payload = {
-      action: "addAssignment",
-      student_id: document.getElementById("a_student_id").value.trim(),
-      subject: document.getElementById("subject").value.trim(),
-      assignment_detail: document.getElementById("assignment_detail").value.trim(),
-      due_date: document.getElementById("due_date").value,
-      status: document.getElementById("status").value
+    script.onerror = function() {
+      reject(new Error("JSONP request failed"));
+      delete window[callbackName];
+      script.remove();
     };
 
-    const data = await postJson(payload);
-    setStatus(data.message || "Assignment added.");
-  } catch (error) {
-    setStatus("Error: " + error.message);
-  }
+    const separator = url.includes("?") ? "&" : "?";
+    script.src = `${url}${separator}callback=${callbackName}`;
+    document.body.appendChild(script);
+  });
 }
 
-async function updateBalance() {
+function renderStudent(student) {
+  document.getElementById("studentId").innerText = student.student_id || "-";
+  document.getElementById("studentName").innerText = student.student_name || "-";
+  document.getElementById("className").innerText = student.class_name || "-";
+  document.getElementById("parentName").innerText = student.parent_name || "-";
+  document.getElementById("balance").innerText = formatCurrency(student.balance);
+}
+
+function renderAISummary(summary, pendingCount, overdueCount) {
+  const box = document.getElementById("aiSummary");
+  if (!box) return;
+
+  box.innerHTML = `
+    <strong>AI Summary:</strong> ${escapeHtml(summary)}<br>
+    <strong>Pending:</strong> ${pendingCount} |
+    <strong>Overdue:</strong> ${overdueCount}
+  `;
+}
+
+function renderAssignments(assignments) {
+  const container = document.getElementById("assignmentList");
+  container.innerHTML = "";
+
+  if (!assignments || assignments.length === 0) {
+    container.innerHTML = `<div class="empty">No assignments found.</div>`;
+    return;
+  }
+
+  assignments.sort((a, b) => new Date(a.due_date) - new Date(b.due_date));
+
+  assignments.forEach((item) => {
+    const card = document.createElement("div");
+    card.className = "assignment-card";
+
+    const dueDateObj = new Date(item.due_date);
+    const now = new Date();
+    const isOverdue =
+      !isNaN(dueDateObj.getTime()) &&
+      dueDateObj < now &&
+      String(item.status).toLowerCase() === "pending";
+
+    if (isOverdue) {
+      card.classList.add("overdue");
+    }
+
+    const safeSubject = escapeHtml(item.subject);
+    const safeDetail = escapeHtml(item.detail);
+    const safeStatus = escapeHtml(item.status || "Pending");
+    const dueDate = formatDate(item.due_date);
+
+    card.innerHTML = `
+      <h3>${safeSubject}</h3>
+      <p class="assignment-meta"><strong>Task:</strong> ${safeDetail}</p>
+      <p class="assignment-meta"><strong>Due Date:</strong> ${escapeHtml(dueDate)}</p>
+      <span class="status-badge ${safeStatus.toLowerCase() === "pending" ? "status-pending" : "status-done"}">
+        ${safeStatus}
+      </span>
+      <button class="helper-btn">Help Me Understand</button>
+      <div class="helper-box" style="display:none; margin-top:12px;"></div>
+      <button class="ack-btn">ACKNOWLEDGE</button>
+    `;
+
+    const helperBtn = card.querySelector(".helper-btn");
+    const helperBox = card.querySelector(".helper-box");
+
+    helperBtn.addEventListener("click", async () => {
+      helperBtn.innerText = "Loading help...";
+      helperBtn.disabled = true;
+
+      try {
+        const helperUrl =
+          `${SCRIPT_URL}?action=getAssignmentHelper&id=${encodeURIComponent(STUDENT_ID)}&subject=${encodeURIComponent(item.subject)}`;
+        const helperData = await fetchJsonp(helperUrl);
+
+        if (helperData.status === "success") {
+          helperBox.style.display = "block";
+          helperBox.innerHTML = `
+            <div><strong>Simple Explanation:</strong> ${escapeHtml(helperData.simple_explanation)}</div>
+            <div style="margin-top:8px;"><strong>Parent Action:</strong> ${escapeHtml(helperData.parent_action)}</div>
+            <div style="margin-top:8px;"><strong>Materials Needed:</strong> ${escapeHtml(helperData.materials_needed)}</div>
+            <div style="margin-top:8px;"><strong>Estimated Time:</strong> ${escapeHtml(helperData.estimated_time)}</div>
+            <div style="margin-top:8px;"><strong>Note:</strong> ${escapeHtml(helperData.encouragement)}</div>
+          `;
+          helperBtn.innerText = "AI Help Ready";
+        } else {
+          helperBtn.innerText = "Try Again";
+          helperBtn.disabled = false;
+        }
+      } catch (error) {
+        helperBtn.innerText = "Try Again";
+        helperBtn.disabled = false;
+      }
+    });
+
+    const btn = card.querySelector(".ack-btn");
+    btn.addEventListener("click", async () => {
+      btn.innerText = "Syncing...";
+      btn.disabled = true;
+
+      try {
+        const ackUrl =
+          `${SCRIPT_URL}?action=ack&id=${encodeURIComponent(STUDENT_ID)}&subject=${encodeURIComponent(item.subject)}`;
+        const ackData = await fetchJsonp(ackUrl);
+
+        if (ackData.status === "success") {
+          btn.innerText = "✅ SEEN";
+          btn.classList.add("done");
+        } else {
+          btn.innerText = "Retry";
+          btn.disabled = false;
+        }
+      } catch (error) {
+        btn.innerText = "Retry";
+        btn.disabled = false;
+      }
+    });
+
+    container.appendChild(card);
+  });
+}
+
+async function init() {
+  document.getElementById("statusMsg").innerText = "Loading data...";
+
   try {
-    setStatus("Updating balance...");
+    const bundleUrl =
+      `${SCRIPT_URL}?action=getDashboardBundle&id=${encodeURIComponent(STUDENT_ID)}`;
+    const data = await fetchJsonp(bundleUrl);
 
-    const payload = {
-      action: "updateBalance",
-      student_id: document.getElementById("b_student_id").value.trim(),
-      balance: document.getElementById("new_balance").value.trim()
-    };
+    if (data.status !== "success") {
+      throw new Error(data.message || "Failed to load dashboard");
+    }
 
-    const data = await postJson(payload);
-    setStatus(data.message || "Balance updated.");
+    renderStudent(data.student);
+    renderAISummary(data.ai_summary, data.pending_count, data.overdue_count);
+    renderAssignments(data.assignments);
+
+    document.getElementById("statusMsg").innerText =
+      `Backend online | Last sync: ${new Date().toLocaleString("en-MY")}`;
   } catch (error) {
-    setStatus("Error: " + error.message);
+    document.getElementById("statusMsg").innerText =
+      `Connection failed: ${error.message}`;
+    console.error(error);
   }
 }
 
-async function sendTelegramTest() {
-  try {
-    setStatus("Sending Telegram test...");
-    const data = await postJson({ action: "sendTestTelegram" });
-    setStatus(data.message || "Telegram test sent.");
-  } catch (error) {
-    setStatus("Error: " + error.message);
-  }
-}
+init();
