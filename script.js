@@ -1,5 +1,6 @@
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwGRRktezMyxBJ_Q_N0dPHAIKI0nBeQukF4USmKG-konnTiXeo3Jz8XOf12FNxCFxb-/exec";
-const STUDENT_ID = "STU001";
+const SCRIPT_URL = "YOUR_APPS_SCRIPT_WEB_APP_URL";
+const params = new URLSearchParams(window.location.search);
+const STUDENT_ID = params.get("id") || "STU001";
 
 const refreshBtn = document.getElementById("refreshBtn");
 if (refreshBtn) {
@@ -110,8 +111,42 @@ function renderAssignments(assignments) {
       <span class="status-badge ${safeStatus.toLowerCase() === "pending" ? "status-pending" : "status-done"}">
         ${safeStatus}
       </span>
+      <button class="helper-btn">Help Me Understand</button>
+      <div class="helper-box" style="display:none; margin-top:12px;"></div>
       <button class="ack-btn">ACKNOWLEDGE</button>
     `;
+
+    const helperBtn = card.querySelector(".helper-btn");
+    const helperBox = card.querySelector(".helper-box");
+
+    helperBtn.addEventListener("click", async () => {
+      helperBtn.innerText = "Loading help...";
+      helperBtn.disabled = true;
+
+      try {
+        const helperUrl =
+          `${SCRIPT_URL}?action=getAssignmentHelper&id=${encodeURIComponent(STUDENT_ID)}&subject=${encodeURIComponent(item.subject)}`;
+        const helperData = await fetchJsonp(helperUrl);
+
+        if (helperData.status === "success") {
+          helperBox.style.display = "block";
+          helperBox.innerHTML = `
+            <div><strong>Simple Explanation:</strong> ${escapeHtml(helperData.simple_explanation)}</div>
+            <div style="margin-top:8px;"><strong>Parent Action:</strong> ${escapeHtml(helperData.parent_action)}</div>
+            <div style="margin-top:8px;"><strong>Materials Needed:</strong> ${escapeHtml(helperData.materials_needed)}</div>
+            <div style="margin-top:8px;"><strong>Estimated Time:</strong> ${escapeHtml(helperData.estimated_time)}</div>
+            <div style="margin-top:8px;"><strong>Note:</strong> ${escapeHtml(helperData.encouragement)}</div>
+          `;
+          helperBtn.innerText = "AI Help Ready";
+        } else {
+          helperBtn.innerText = "Try Again";
+          helperBtn.disabled = false;
+        }
+      } catch (error) {
+        helperBtn.innerText = "Try Again";
+        helperBtn.disabled = false;
+      }
+    });
 
     const btn = card.querySelector(".ack-btn");
     btn.addEventListener("click", async () => {
@@ -119,7 +154,8 @@ function renderAssignments(assignments) {
       btn.disabled = true;
 
       try {
-        const ackUrl = `${SCRIPT_URL}?action=ack&id=${encodeURIComponent(STUDENT_ID)}&subject=${encodeURIComponent(item.subject)}`;
+        const ackUrl =
+          `${SCRIPT_URL}?action=ack&id=${encodeURIComponent(STUDENT_ID)}&subject=${encodeURIComponent(item.subject)}`;
         const ackData = await fetchJsonp(ackUrl);
 
         if (ackData.status === "success") {
@@ -143,7 +179,8 @@ async function init() {
   document.getElementById("statusMsg").innerText = "Loading data...";
 
   try {
-    const bundleUrl = `${SCRIPT_URL}?action=getDashboardBundle&id=${encodeURIComponent(STUDENT_ID)}`;
+    const bundleUrl =
+      `${SCRIPT_URL}?action=getDashboardBundle&id=${encodeURIComponent(STUDENT_ID)}`;
     const data = await fetchJsonp(bundleUrl);
 
     if (data.status !== "success") {
