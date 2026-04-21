@@ -16,9 +16,7 @@
   --gold-soft: #fef3c7;
   --red: #dc2626;
   --red-soft: #fff1f2;
-  --border: #dbe4f0;
   --shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
-  --radius: 18px;
 }
 
 body {
@@ -91,7 +89,6 @@ body {
 .section-title h2 {
   margin: 0;
   font-size: 24px;
-  color: #1e293b;
 }
 
 .pill {
@@ -208,7 +205,6 @@ body {
 .assignment-card h3 {
   margin: 0 0 14px 0;
   font-size: 22px;
-  color: #1f2937;
 }
 
 .assignment-meta {
@@ -268,10 +264,21 @@ button:hover {
   background: var(--green);
 }
 
-.ack-btn:disabled {
-  opacity: 0.8;
-  cursor: not-allowed;
-  transform: none;
+.helper-btn {
+  margin-top: 14px;
+  background: #7c3aed;
+  color: white;
+  width: 100%;
+  font-size: 15px;
+}
+
+.helper-box {
+  background: #f5f3ff;
+  border: 1px solid #ddd6fe;
+  color: #4c1d95;
+  border-radius: 12px;
+  padding: 14px;
+  line-height: 1.6;
 }
 
 .status-card p {
@@ -287,29 +294,6 @@ button:hover {
   font-size: 16px;
 }
 
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-input,
-select {
-  width: 100%;
-  padding: 12px 14px;
-  border: 1px solid #cbd5e1;
-  border-radius: 12px;
-  font-size: 14px;
-  background: white;
-}
-
-input:focus,
-select:focus {
-  outline: 2px solid #bfdbfe;
-  border-color: #60a5fa;
-}
-
 @media (max-width: 768px) {
   .container {
     padding: 18px 14px 28px;
@@ -322,30 +306,6 @@ select:focus {
   .subtitle {
     font-size: 16px;
   }
-  .admin-btn {
-  background: #2563eb;
-  color: white;
-  min-width: 180px;
-}
-
-.admin-btn:hover {
-  background: #1d4ed8;
-}
-
-.dark-btn {
-  background: #0f172a;
-}
-
-.dark-btn:hover {
-  background: #020617;
-}
-
-.tool-row {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 16px;
-}
 
   .card {
     padding: 18px;
