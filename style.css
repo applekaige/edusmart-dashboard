@@ -341,3 +341,30 @@ button:hover {
   color: white;
   width: 100%;
 }
+.table-wrap {
+  overflow-x: auto;
+  margin-top: 16px;
+}
+
+.analytics-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+.analytics-table th,
+.analytics-table td {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.analytics-table th {
+  background: #f8fafc;
+  color: #334155;
+}
+
+.analytics-table tr:hover td {
+  background: #f8fbff;
+}
