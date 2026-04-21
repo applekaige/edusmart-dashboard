@@ -33,7 +33,8 @@ function escapeHtml(text) {
 
 function fetchJsonp(url) {
   return new Promise((resolve, reject) => {
-    const callbackName = "jsonp_cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+    const callbackName =
+      "jsonp_cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
     const script = document.createElement("script");
 
     window[callbackName] = function(data) {
@@ -71,6 +72,19 @@ function renderAISummary(summary, pendingCount, overdueCount) {
     <strong>Pending:</strong> ${pendingCount} |
     <strong>Overdue:</strong> ${overdueCount}
   `;
+}
+
+function speakText(text) {
+  if (!("speechSynthesis" in window)) {
+    alert("Voice feature is not supported in this browser.");
+    return;
+  }
+
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = "en-MY";
+  utter.rate = 1.0;
+  window.speechSynthesis.speak(utter);
 }
 
 function renderAssignments(assignments) {
@@ -135,6 +149,8 @@ function renderAssignments(assignments) {
 
     const helperBtn = card.querySelector(".helper-btn");
     const helperBox = card.querySelector(".helper-box");
+    const ackBtn = card.querySelector(".ack-btn");
+    const voiceBtn = card.querySelector(".voice-btn");
 
     helperBtn.addEventListener("click", async () => {
       helperBtn.innerText = "Loading help...";
@@ -162,13 +178,13 @@ function renderAssignments(assignments) {
       } catch (error) {
         helperBtn.innerText = "Try Again";
         helperBtn.disabled = false;
+        console.error(error);
       }
     });
 
-    const btn = card.querySelector(".ack-btn");
-    btn.addEventListener("click", async () => {
-      btn.innerText = "Syncing...";
-      btn.disabled = true;
+    ackBtn.addEventListener("click", async () => {
+      ackBtn.innerText = "Syncing...";
+      ackBtn.disabled = true;
 
       try {
         const ackUrl =
@@ -176,46 +192,52 @@ function renderAssignments(assignments) {
         const ackData = await fetchJsonp(ackUrl);
 
         if (ackData.status === "success") {
-          btn.innerText = "✅ SEEN";
-          btn.classList.add("done");
+          ackBtn.innerText = "✅ SEEN";
+          ackBtn.classList.add("done");
         } else {
-          btn.innerText = "Retry";
-          btn.disabled = false;
+          ackBtn.innerText = "Retry";
+          ackBtn.disabled = false;
         }
       } catch (error) {
-        btn.innerText = "Retry";
-        btn.disabled = false;
+        ackBtn.innerText = "Retry";
+        ackBtn.disabled = false;
+        console.error(error);
+      }
+    });
+
+    voiceBtn.addEventListener("click", async () => {
+      voiceBtn.innerText = "Loading voice...";
+      voiceBtn.disabled = true;
+
+      try {
+        const helperUrl =
+          `${SCRIPT_URL}?action=getAssignmentHelper&id=${encodeURIComponent(STUDENT_ID)}&subject=${encodeURIComponent(item.subject)}`;
+        const helperData = await fetchJsonp(helperUrl);
+
+        if (helperData.status === "success") {
+          const text =
+            "Subject " + item.subject + ". " +
+            helperData.simple_explanation + ". " +
+            "Parent action. " + helperData.parent_action + ". " +
+            "Estimated time. " + helperData.estimated_time;
+
+          speakText(text);
+          voiceBtn.innerText = "🔊 Voice Explain";
+        } else {
+          voiceBtn.innerText = "Retry Voice";
+        }
+      } catch (error) {
+        voiceBtn.innerText = "Retry Voice";
+        console.error(error);
+      } finally {
+        voiceBtn.disabled = false;
       }
     });
 
     container.appendChild(card);
   });
 }
-function speakText(text) {
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = "en-MY";
-  utter.rate = 1.0;
-  speechSynthesis.speak(utter);
-}
-const voiceBtn = card.querySelector(".voice-btn");
-voiceBtn.addEventListener("click", async () => {
-  try {
-    const helperUrl =
-      `${SCRIPT_URL}?action=getAssignmentHelper&id=${encodeURIComponent(STUDENT_ID)}&subject=${encodeURIComponent(item.subject)}`;
-    const helperData = await fetchJsonp(helperUrl);
 
-    if (helperData.status === "success") {
-      const text =
-        "Subject " + item.subject + ". " +
-        helperData.simple_explanation + ". " +
-        "Parent action. " + helperData.parent_action + ". " +
-        "Estimated time. " + helperData.estimated_time;
-      speakText(text);
-    }
-  } catch (error) {
-    console.error(error);
-  }
-});
 async function init() {
   document.getElementById("statusMsg").innerText = "Loading data...";
 
