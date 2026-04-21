@@ -197,6 +197,25 @@ function speakText(text) {
   utter.rate = 1.0;
   speechSynthesis.speak(utter);
 }
+const voiceBtn = card.querySelector(".voice-btn");
+voiceBtn.addEventListener("click", async () => {
+  try {
+    const helperUrl =
+      `${SCRIPT_URL}?action=getAssignmentHelper&id=${encodeURIComponent(STUDENT_ID)}&subject=${encodeURIComponent(item.subject)}`;
+    const helperData = await fetchJsonp(helperUrl);
+
+    if (helperData.status === "success") {
+      const text =
+        "Subject " + item.subject + ". " +
+        helperData.simple_explanation + ". " +
+        "Parent action. " + helperData.parent_action + ". " +
+        "Estimated time. " + helperData.estimated_time;
+      speakText(text);
+    }
+  } catch (error) {
+    console.error(error);
+  }
+});
 async function init() {
   document.getElementById("statusMsg").innerText = "Loading data...";
 
