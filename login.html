@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduSmart 2026 | Parent Login</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .login-wrap {
+      max-width: 420px;
+      margin: 80px auto;
+    }
+
+    .login-box {
+      background: white;
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+    }
+
+    .login-box input {
+      margin-bottom: 14px;
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      font-size: 14px;
+      background: white;
+    }
+
+    .login-box input:focus {
+      outline: 2px solid #bfdbfe;
+      border-color: #60a5fa;
+    }
+
+    .login-btn {
+      width: 100%;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .login-status {
+      margin-top: 14px;
+      color: #475569;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container login-wrap">
+    <header class="hero">
+      <div class="hero-badge">Parent Secure Login</div>
+      <h1>EduSmart 2026</h1>
+      <p class="subtitle">Login to view student dashboard</p>
+    </header>
+
+    <div class="login-box">
+      <input id="studentId" placeholder="Student ID (e.g. STU001)" />
+      <input id="parentPin" type="password" placeholder="Parent PIN" />
+      <button id="loginBtn" class="login-btn">Login</button>
+      <div id="loginStatus" class="login-status">Ready.</div>
+    </div>
+  </div>
+
+  <script src="login.js"></script>
+</body>
+</html>
