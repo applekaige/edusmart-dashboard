@@ -1,70 +1,203 @@
-const SCRIPT_URL = "YOUR_WEB_APP_URL";
-const STUDENT_ID = "STU001";
+const SCRIPT_URL = "YOUR_APPS_SCRIPT_WEB_APP_URL";
+const params = new URLSearchParams(window.location.search);
+const STUDENT_ID = params.get("id") || "STU001";
 
-/* JSONP */
+const refreshBtn = document.getElementById("refreshBtn");
+if (refreshBtn) {
+  refreshBtn.addEventListener("click", init);
+}
+
+function formatCurrency(value) {
+  const number = Number(value || 0);
+  return `RM ${number.toFixed(2)}`;
+}
+
+function formatDate(value) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return String(value);
+  return date.toLocaleDateString("en-MY", {
+    year: "numeric",
+    month: "short",
+    day: "numeric"
+  });
+}
+
+function escapeHtml(text) {
+  return String(text ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 function fetchJsonp(url) {
   return new Promise((resolve, reject) => {
-    const callbackName = "cb_" + Math.random().toString(36).substr(2);
+    const callbackName = "jsonp_cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+    const script = document.createElement("script");
 
     window[callbackName] = function(data) {
       resolve(data);
       delete window[callbackName];
+      script.remove();
     };
 
-    const script = document.createElement("script");
-    script.src = `${url}&callback=${callbackName}`;
-    script.onerror = reject;
+    script.onerror = function() {
+      reject(new Error("JSONP request failed"));
+      delete window[callbackName];
+      script.remove();
+    };
 
+    const separator = url.includes("?") ? "&" : "?";
+    script.src = `${url}${separator}callback=${callbackName}`;
     document.body.appendChild(script);
   });
 }
 
-/* LOAD DASHBOARD */
-async function loadDashboard() {
-  const data = await fetchJsonp(`${SCRIPT_URL}?action=getDashboardBundle&id=${STUDENT_ID}`);
-
-  document.getElementById("studentName").innerText = data.student.student_name;
-  document.getElementById("balance").innerText = "RM " + data.student.balance;
-  document.getElementById("aiSummary").innerText = data.ai_summary;
-
-  renderAssignments(data.assignments);
+function renderStudent(student) {
+  document.getElementById("studentId").innerText = student.student_id || "-";
+  document.getElementById("studentName").innerText = student.student_name || "-";
+  document.getElementById("className").innerText = student.class_name || "-";
+  document.getElementById("parentName").innerText = student.parent_name || "-";
+  document.getElementById("balance").innerText = formatCurrency(student.balance);
 }
 
-/* RENDER ASSIGNMENTS */
-function renderAssignments(list) {
-  const container = document.getElementById("assignments");
-  container.innerHTML = "";
+function renderAISummary(summary, pendingCount, overdueCount) {
+  const box = document.getElementById("aiSummary");
+  if (!box) return;
 
-  list.forEach(item => {
-    const div = document.createElement("div");
-
-    div.innerHTML = `
-      <h3>${item.subject}</h3>
-      <p>${item.detail}</p>
-      <button onclick="ack('${item.subject}')">ACK</button>
-      <button onclick="getHelp('${item.subject}')">AI Help</button>
-      <div id="help-${item.subject}"></div>
-    `;
-
-    container.appendChild(div);
-  });
-}
-
-/* ACK */
-async function ack(subject) {
-  await fetchJsonp(`${SCRIPT_URL}?action=ack&id=${STUDENT_ID}&subject=${subject}`);
-  alert("ACK sent!");
-}
-
-/* AI HELP */
-async function getHelp(subject) {
-  const data = await fetchJsonp(`${SCRIPT_URL}?action=getAssignmentHelper&id=${STUDENT_ID}&subject=${subject}`);
-
-  document.getElementById(`help-${subject}`).innerHTML = `
-    <p><b>Explain:</b> ${data.simple_explanation}</p>
-    <p><b>Action:</b> ${data.parent_action}</p>
+  box.innerHTML = `
+    <strong>AI Summary:</strong> ${escapeHtml(summary)}<br>
+    <strong>Pending:</strong> ${pendingCount} |
+    <strong>Overdue:</strong> ${overdueCount}
   `;
 }
 
-/* INIT */
-loadDashboard();
+function renderAssignments(assignments) {
+  const container = document.getElementById("assignmentList");
+  container.innerHTML = "";
+
+  if (!assignments || assignments.length === 0) {
+    container.innerHTML = `<div class="empty">No assignments found.</div>`;
+    return;
+  }
+
+  assignments.sort((a, b) => new Date(a.due_date) - new Date(b.due_date));
+
+  assignments.forEach((item) => {
+    const card = document.createElement("div");
+    card.className = "assignment-card";
+
+    const dueDateObj = new Date(item.due_date);
+    const now = new Date();
+    const isOverdue =
+      !isNaN(dueDateObj.getTime()) &&
+      dueDateObj < now &&
+      String(item.status).toLowerCase() === "pending";
+
+    if (isOverdue) {
+      card.classList.add("overdue");
+    }
+
+    const safeSubject = escapeHtml(item.subject);
+    const safeDetail = escapeHtml(item.detail);
+    const safeStatus = escapeHtml(item.status || "Pending");
+    const dueDate = formatDate(item.due_date);
+
+    card.innerHTML = `
+      <h3>${safeSubject}</h3>
+      <p class="assignment-meta"><strong>Task:</strong> ${safeDetail}</p>
+      <p class="assignment-meta"><strong>Due Date:</strong> ${escapeHtml(dueDate)}</p>
+      <span class="status-badge ${safeStatus.toLowerCase() === "pending" ? "status-pending" : "status-done"}">
+        ${safeStatus}
+      </span>
+      <button class="helper-btn">Help Me Understand</button>
+      <div class="helper-box" style="display:none; margin-top:12px;"></div>
+      <button class="ack-btn">ACKNOWLEDGE</button>
+    `;
+
+    const helperBtn = card.querySelector(".helper-btn");
+    const helperBox = card.querySelector(".helper-box");
+
+    helperBtn.addEventListener("click", async () => {
+      helperBtn.innerText = "Loading help...";
+      helperBtn.disabled = true;
+
+      try {
+        const helperUrl =
+          `${SCRIPT_URL}?action=getAssignmentHelper&id=${encodeURIComponent(STUDENT_ID)}&subject=${encodeURIComponent(item.subject)}`;
+        const helperData = await fetchJsonp(helperUrl);
+
+        if (helperData.status === "success") {
+          helperBox.style.display = "block";
+          helperBox.innerHTML = `
+            <div><strong>Simple Explanation:</strong> ${escapeHtml(helperData.simple_explanation)}</div>
+            <div style="margin-top:8px;"><strong>Parent Action:</strong> ${escapeHtml(helperData.parent_action)}</div>
+            <div style="margin-top:8px;"><strong>Materials Needed:</strong> ${escapeHtml(helperData.materials_needed)}</div>
+            <div style="margin-top:8px;"><strong>Estimated Time:</strong> ${escapeHtml(helperData.estimated_time)}</div>
+            <div style="margin-top:8px;"><strong>Note:</strong> ${escapeHtml(helperData.encouragement)}</div>
+          `;
+          helperBtn.innerText = "AI Help Ready";
+        } else {
+          helperBtn.innerText = "Try Again";
+          helperBtn.disabled = false;
+        }
+      } catch (error) {
+        helperBtn.innerText = "Try Again";
+        helperBtn.disabled = false;
+      }
+    });
+
+    const btn = card.querySelector(".ack-btn");
+    btn.addEventListener("click", async () => {
+      btn.innerText = "Syncing...";
+      btn.disabled = true;
+
+      try {
+        const ackUrl =
+          `${SCRIPT_URL}?action=ack&id=${encodeURIComponent(STUDENT_ID)}&subject=${encodeURIComponent(item.subject)}`;
+        const ackData = await fetchJsonp(ackUrl);
+
+        if (ackData.status === "success") {
+          btn.innerText = "✅ SEEN";
+          btn.classList.add("done");
+        } else {
+          btn.innerText = "Retry";
+          btn.disabled = false;
+        }
+      } catch (error) {
+        btn.innerText = "Retry";
+        btn.disabled = false;
+      }
+    });
+
+    container.appendChild(card);
+  });
+}
+
+async function init() {
+  document.getElementById("statusMsg").innerText = "Loading data...";
+
+  try {
+    const bundleUrl =
+      `${SCRIPT_URL}?action=getDashboardBundle&id=${encodeURIComponent(STUDENT_ID)}`;
+    const data = await fetchJsonp(bundleUrl);
+
+    if (data.status !== "success") {
+      throw new Error(data.message || "Failed to load dashboard");
+    }
+
+    renderStudent(data.student);
+    renderAISummary(data.ai_summary, data.pending_count, data.overdue_count);
+    renderAssignments(data.assignments);
+
+    document.getElementById("statusMsg").innerText =
+      `Backend online | Last sync: ${new Date().toLocaleString("en-MY")}`;
+  } catch (error) {
+    document.getElementById("statusMsg").innerText =
+      `Connection failed: ${error.message}`;
+    console.error(error);
+  }
+}
+
+init();
