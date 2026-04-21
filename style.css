@@ -281,6 +281,21 @@ button:hover {
   line-height: 1.6;
 }
 
+.attachment-box {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid #dbeafe;
+  border-radius: 12px;
+}
+
+.assignment-image {
+  margin-top: 8px;
+  max-width: 100%;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+}
+
 .status-card p {
   margin: 14px 0 0;
   color: #475569;
@@ -319,18 +334,4 @@ button:hover {
   .assignment-card h3 {
     font-size: 20px;
   }
-}
-.attachment-box {
-  margin-top: 12px;
-  padding: 12px;
-  background: #f8fafc;
-  border: 1px solid #dbeafe;
-  border-radius: 12px;
-}
-
-.assignment-image {
-  margin-top: 8px;
-  max-width: 100%;
-  border-radius: 10px;
-  border: 1px solid #cbd5e1;
 }
