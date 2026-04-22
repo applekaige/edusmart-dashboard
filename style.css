@@ -436,3 +436,41 @@ button:disabled {
 .analytics-table tr:hover td {
   background: #f8fbff;
 }
+.simple-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.simple-list-item {
+  padding: 14px;
+  border-radius: 12px;
+  background: #f8fbff;
+  border: 1px solid #dbeafe;
+  line-height: 1.6;
+}
+
+.quiz-box {
+  margin-top: 12px;
+}
+
+.quiz-question {
+  font-size: 16px;
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+.quiz-options {
+  display: grid;
+  gap: 10px;
+}
+
+.quiz-option {
+  background: #2563eb;
+  color: white;
+  width: 100%;
+}
+
+.quiz-option:hover {
+  background: #1d4ed8;
+}
