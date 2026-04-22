@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduSmart 2026 | Attendance & Canteen Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="hero">
+      <div class="hero-badge">Teacher Monitoring Dashboard</div>
+      <h1>Attendance + Canteen</h1>
+      <p class="subtitle">Live school transaction monitoring</p>
+    </header>
+
+    <section class="card">
+      <div class="section-head">
+        <div class="section-title">
+          <h2>Today Overview</h2>
+          <span class="pill pill-dark">Live Data</span>
+        </div>
+        <button id="refreshAttendanceBtn" class="refresh-btn">Refresh</button>
+      </div>
+
+      <div class="profile-grid">
+        <div class="info-box">
+          <span class="label">Total Records</span>
+          <span id="totalRecords">0</span>
+        </div>
+
+        <div class="info-box">
+          <span class="label">Today Attendance</span>
+          <span id="todayAttendance">0</span>
+        </div>
+
+        <div class="info-box">
+          <span class="label">Today Canteen Txn</span>
+          <span id="todayCanteenCount">0</span>
+        </div>
+
+        <div class="info-box balance-box">
+          <span class="label">Today Canteen Amount</span>
+          <span id="todayCanteenAmount">RM 0.00</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card ai-card">
+      <div class="section-title">
+        <h2>Teacher Insight</h2>
+        <span class="pill pill-blue">Daily Summary</span>
+      </div>
+      <div id="attendanceInsight" class="ai-summary">Loading summary...</div>
+    </section>
+
+    <section class="card">
+      <div class="section-title">
+        <h2>Latest Attendance & Canteen Logs</h2>
+        <span class="pill pill-gold">Recent Activity</span>
+      </div>
+
+      <div class="table-wrap">
+        <table class="analytics-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Student ID</th>
+              <th>Name</th>
+              <th>Class</th>
+              <th>Type</th>
+              <th>Amount</th>
+              <th>Balance After</th>
+              <th>Remarks</th>
+            </tr>
+          </thead>
+          <tbody id="attendanceTableBody">
+            <tr>
+              <td colspan="8">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card status-card">
+      <div class="section-title">
+        <h2>System Status</h2>
+        <span class="pill pill-green">Online</span>
+      </div>
+      <p id="attendanceStatusMsg">Connecting...</p>
+    </section>
+  </div>
+
+  <script src="attendance.js"></script>
+</body>
+</html>
