@@ -8,6 +8,7 @@ const STUDENT_ID =
 
 if (!STUDENT_ID) {
   window.location.href = "login.html";
+  throw new Error("No student ID found");
 }
 
 const refreshBtn = document.getElementById("refreshBtn");
@@ -28,40 +29,7 @@ function formatCurrency(value) {
   const number = Number(value || 0);
   return `RM ${number.toFixed(2)}`;
 }
-function renderTimetable(todayItems, tomorrowItems, todayDay, tomorrowDay) {
-  const todayBox = document.getElementById("todayTimetable");
-  const tomorrowBox = document.getElementById("tomorrowPreparation");
 
-  // ===== TODAY =====
-  if (todayBox) {
-    if (!todayItems || todayItems.length === 0) {
-      todayBox.innerHTML = `<div class="empty">No timetable found for ${todayDay}.</div>`;
-    } else {
-      todayBox.innerHTML = todayItems.map(item => `
-        <div class="simple-list-item">
-          <strong>Period ${item.period} - ${item.subject}</strong><br>
-          <span>Book: ${item.book || "-"}</span><br>
-          <span>Notes: ${item.notes || "-"}</span>
-        </div>
-      `).join("");
-    }
-  }
-
-  // ===== TOMORROW =====
-  if (tomorrowBox) {
-    if (!tomorrowItems || tomorrowItems.length === 0) {
-      tomorrowBox.innerHTML = `<div class="empty">No timetable found for ${tomorrowDay}.</div>`;
-    } else {
-      tomorrowBox.innerHTML = tomorrowItems.map(item => `
-        <div class="simple-list-item">
-          <strong>Period ${item.period} - ${item.subject}</strong><br>
-          <span>Bring: ${item.book || "-"}</span><br>
-          <span>Notes: ${item.notes || "-"}</span>
-        </div>
-      `).join("");
-    }
-  }
-}
 function formatDate(value) {
   if (!value) return "-";
   const date = new Date(value);
@@ -83,7 +51,8 @@ function escapeHtml(text) {
 
 function fetchJsonp(url) {
   return new Promise((resolve, reject) => {
-    const callbackName = "jsonp_cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+    const callbackName =
+      "jsonp_cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
     const script = document.createElement("script");
 
     window[callbackName] = function(data) {
@@ -91,7 +60,20 @@ function fetchJsonp(url) {
       delete window[callbackName];
       script.remove();
     };
-    function renderTimetable(todayItems, tomorrowItems, todayDay, tomorrowDay) {
+
+    script.onerror = function() {
+      reject(new Error("JSONP request failed"));
+      delete window[callbackName];
+      script.remove();
+    };
+
+    const separator = url.includes("?") ? "&" : "?";
+    script.src = `${url}${separator}callback=${callbackName}`;
+    document.body.appendChild(script);
+  });
+}
+
+function renderTimetable(todayItems, tomorrowItems, todayDay, tomorrowDay) {
   const todayBox = document.getElementById("todayTimetable");
   const tomorrowBox = document.getElementById("tomorrowPreparation");
 
@@ -132,17 +114,6 @@ function fetchJsonp(url) {
   }
 }
 
-    script.onerror = function() {
-      reject(new Error("JSONP request failed"));
-      delete window[callbackName];
-      script.remove();
-    };
-
-    const separator = url.includes("?") ? "&" : "?";
-    script.src = `${url}${separator}callback=${callbackName}`;
-    document.body.appendChild(script);
-  });
-}
 async function loadQuizForSubject(subject) {
   const quizSection = document.getElementById("quizSection");
   if (!quizSection) return;
@@ -174,7 +145,7 @@ async function loadQuizForSubject(subject) {
           </div>
 
           <div class="quiz-progress-wrap">
-            <div class="quiz-progress-bar" style="width:${((currentIndex) / quizzes.length) * 100}%"></div>
+            <div class="quiz-progress-bar" style="width:${(currentIndex / quizzes.length) * 100}%"></div>
           </div>
 
           <div class="quiz-question">
@@ -217,8 +188,11 @@ async function loadQuizForSubject(subject) {
           });
 
           try {
-            const result = await fetch(`${SCRIPT_URL}`, {
+            const result = await fetch(SCRIPT_URL, {
               method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
               body: JSON.stringify({
                 action: "submitQuizAnswer",
                 student_id: STUDENT_ID,
@@ -232,12 +206,8 @@ async function loadQuizForSubject(subject) {
 
             buttons.forEach(b => {
               const answer = b.getAttribute("data-answer");
-              if (answer === correctAnswer) {
-                b.classList.add("quiz-correct");
-              }
-              if (answer === studentAnswer && answer !== correctAnswer) {
-                b.classList.add("quiz-wrong");
-              }
+              if (answer === correctAnswer) b.classList.add("quiz-correct");
+              if (answer === studentAnswer && answer !== correctAnswer) b.classList.add("quiz-wrong");
             });
 
             feedback.style.display = "block";
@@ -268,7 +238,6 @@ async function loadQuizForSubject(subject) {
             });
 
             nextBtn.style.display = "inline-block";
-
           } catch (error) {
             feedback.style.display = "block";
             feedback.innerHTML = `
@@ -282,7 +251,6 @@ async function loadQuizForSubject(subject) {
 
       nextBtn.addEventListener("click", () => {
         currentIndex++;
-
         if (currentIndex < quizzes.length) {
           renderQuestion();
         } else {
@@ -312,15 +280,8 @@ async function loadQuizForSubject(subject) {
       quizSection.innerHTML = `
         <div class="quiz-box">
           <div class="quiz-result-title">${emoji} Quiz Completed</div>
-
-          <div class="quiz-result-score">
-            Score: ${score} / ${total} (${percent}%)
-          </div>
-
-          <div class="quiz-result-message">
-            ${escapeHtml(message)}
-          </div>
-
+          <div class="quiz-result-score">Score: ${score} / ${total} (${percent}%)</div>
+          <div class="quiz-result-message">${escapeHtml(message)}</div>
           <div class="quiz-result-list">
             ${answers.map((item, index) => `
               <div class="quiz-result-item">
@@ -331,7 +292,6 @@ async function loadQuizForSubject(subject) {
               </div>
             `).join("")}
           </div>
-
           <div class="quiz-actions">
             <button id="restartQuizBtn" class="quiz-next-btn">Try Again 🔄</button>
           </div>
@@ -350,16 +310,18 @@ async function loadQuizForSubject(subject) {
     }
 
     renderQuestion();
-
   } catch (error) {
     quizSection.innerHTML = `<div class="empty">Quiz loading failed.</div>`;
+    console.error(error);
   }
 }
+
 function speakText(text) {
+  window.speechSynthesis.cancel();
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = "en-MY";
   utter.rate = 1.0;
-  speechSynthesis.speak(utter);
+  window.speechSynthesis.speak(utter);
 }
 
 function renderStudent(student) {
@@ -383,6 +345,8 @@ function renderAISummary(summary, pendingCount, overdueCount) {
 
 function renderAssignments(assignments) {
   const container = document.getElementById("assignmentList");
+  if (!container) return;
+
   container.innerHTML = "";
 
   if (!assignments || assignments.length === 0) {
@@ -403,9 +367,7 @@ function renderAssignments(assignments) {
       dueDateObj < now &&
       String(item.status).toLowerCase() === "pending";
 
-    if (isOverdue) {
-      card.classList.add("overdue");
-    }
+    if (isOverdue) card.classList.add("overdue");
 
     const safeSubject = escapeHtml(item.subject);
     const safeDetail = escapeHtml(item.detail);
@@ -432,9 +394,7 @@ function renderAssignments(assignments) {
       <p class="assignment-meta"><strong>Task:</strong> ${safeDetail}</p>
       <p class="assignment-meta"><strong>Due Date:</strong> ${escapeHtml(dueDate)}</p>
       ${attachmentHtml}
-      <span class="status-badge ${safeStatus.toLowerCase() === "pending" ? "status-pending" : "status-done"}">
-        ${safeStatus}
-      </span>
+      <span class="status-badge ${safeStatus.toLowerCase() === "pending" ? "status-pending" : "status-done"}">${safeStatus}</span>
       <button class="helper-btn">Help Me Understand</button>
       <button class="voice-btn">🔊 Voice Explain</button>
       <div class="helper-box" style="display:none; margin-top:12px;"></div>
@@ -444,6 +404,7 @@ function renderAssignments(assignments) {
     const helperBtn = card.querySelector(".helper-btn");
     const voiceBtn = card.querySelector(".voice-btn");
     const helperBox = card.querySelector(".helper-box");
+    const ackBtn = card.querySelector(".ack-btn");
 
     helperBtn.addEventListener("click", async () => {
       helperBtn.innerText = "Loading help...";
@@ -471,6 +432,7 @@ function renderAssignments(assignments) {
       } catch (error) {
         helperBtn.innerText = "Try Again";
         helperBtn.disabled = false;
+        console.error(error);
       }
     });
 
@@ -493,10 +455,9 @@ function renderAssignments(assignments) {
       }
     });
 
-    const btn = card.querySelector(".ack-btn");
-    btn.addEventListener("click", async () => {
-      btn.innerText = "Syncing...";
-      btn.disabled = true;
+    ackBtn.addEventListener("click", async () => {
+      ackBtn.innerText = "Syncing...";
+      ackBtn.disabled = true;
 
       try {
         const ackUrl =
@@ -504,15 +465,16 @@ function renderAssignments(assignments) {
         const ackData = await fetchJsonp(ackUrl);
 
         if (ackData.status === "success") {
-          btn.innerText = "✅ SEEN";
-          btn.classList.add("done");
+          ackBtn.innerText = "✅ SEEN";
+          ackBtn.classList.add("done");
         } else {
-          btn.innerText = "Retry";
-          btn.disabled = false;
+          ackBtn.innerText = "Retry";
+          ackBtn.disabled = false;
         }
       } catch (error) {
-        btn.innerText = "Retry";
-        btn.disabled = false;
+        ackBtn.innerText = "Retry";
+        ackBtn.disabled = false;
+        console.error(error);
       }
     });
 
@@ -521,7 +483,8 @@ function renderAssignments(assignments) {
 }
 
 async function init() {
-  document.getElementById("statusMsg").innerText = "Loading data...";
+  const statusBox = document.getElementById("statusMsg");
+  if (statusBox) statusBox.innerText = "Loading data...";
 
   try {
     const bundleUrl =
@@ -531,37 +494,15 @@ async function init() {
     if (data.status !== "success") {
       throw new Error(data.message || "Failed to load dashboard");
     }
-        const timetableUrl =
+
+    renderStudent(data.student);
+    renderAISummary(data.ai_summary, data.pending_count, data.overdue_count);
+    renderAssignments(data.assignments);
+
+    const timetableUrl =
       `${SCRIPT_URL}?action=getStudentTimetable&id=${encodeURIComponent(STUDENT_ID)}`;
     const timetableData = await fetchJsonp(timetableUrl);
-    // ===== LOAD TIMETABLE + QUIZ =====
-        const timetableUrl =
-      `${SCRIPT_URL}?action=getStudentTimetable&id=${encodeURIComponent(STUDENT_ID)}`;
 
-       const timetableData = await fetchJsonp(timetableUrl);
-
-if (timetableData.status === "success") {
-
-  renderTimetable(
-    timetableData.today_timetable || [],
-    timetableData.tomorrow_timetable || [],
-    timetableData.today_day || "Today",
-    timetableData.tomorrow_day || "Tomorrow"
-  );
-
-  // Load quiz based on first subject today
-  if (timetableData.today_timetable && timetableData.today_timetable.length > 0) {
-    loadQuizForSubject(timetableData.today_timetable[0].subject);
-  } else {
-    const quizSection = document.getElementById("quizSection");
-    if (quizSection) {
-      quizSection.innerHTML = `<div class="empty">No subject available for today's quiz.</div>`;
-    }
-  }
-
-} else {
-  console.error("Timetable load failed:", timetableData.message);
-}
     if (timetableData.status === "success") {
       renderTimetable(
         timetableData.today_timetable || [],
@@ -579,15 +520,15 @@ if (timetableData.status === "success") {
         }
       }
     }
-    renderStudent(data.student);
-    renderAISummary(data.ai_summary, data.pending_count, data.overdue_count);
-    renderAssignments(data.assignments);
 
-    document.getElementById("statusMsg").innerText =
-      `Backend online | Last sync: ${new Date().toLocaleString("en-MY")}`;
+    if (statusBox) {
+      statusBox.innerText =
+        `Backend online | Last sync: ${new Date().toLocaleString("en-MY")}`;
+    }
   } catch (error) {
-    document.getElementById("statusMsg").innerText =
-      `Connection failed: ${error.message}`;
+    if (statusBox) {
+      statusBox.innerText = `Connection failed: ${error.message}`;
+    }
     console.error(error);
   }
 }
