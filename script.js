@@ -58,6 +58,46 @@ function fetchJsonp(url) {
       delete window[callbackName];
       script.remove();
     };
+    function renderTimetable(todayItems, tomorrowItems, todayDay, tomorrowDay) {
+  const todayBox = document.getElementById("todayTimetable");
+  const tomorrowBox = document.getElementById("tomorrowPreparation");
+
+  if (todayBox) {
+    if (!todayItems || todayItems.length === 0) {
+      todayBox.innerHTML = `<div class="empty">No timetable found for ${escapeHtml(todayDay)}.</div>`;
+    } else {
+      todayBox.innerHTML = `
+        <div class="simple-list">
+          ${todayItems.map(item => `
+            <div class="simple-list-item">
+              <strong>Period ${escapeHtml(item.period)} - ${escapeHtml(item.subject)}</strong><br>
+              <span>Book: ${escapeHtml(item.book || "-")}</span><br>
+              <span>Notes: ${escapeHtml(item.notes || "-")}</span>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+  }
+
+  if (tomorrowBox) {
+    if (!tomorrowItems || tomorrowItems.length === 0) {
+      tomorrowBox.innerHTML = `<div class="empty">No timetable found for ${escapeHtml(tomorrowDay)}.</div>`;
+    } else {
+      tomorrowBox.innerHTML = `
+        <div class="simple-list">
+          ${tomorrowItems.map(item => `
+            <div class="simple-list-item">
+              <strong>Period ${escapeHtml(item.period)} - ${escapeHtml(item.subject)}</strong><br>
+              <span>Bring: ${escapeHtml(item.book || "-")}</span><br>
+              <span>Notes: ${escapeHtml(item.notes || "-")}</span>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+  }
+}
 
     script.onerror = function() {
       reject(new Error("JSONP request failed"));
