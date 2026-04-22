@@ -157,54 +157,199 @@ async function loadQuizForSubject(subject) {
       return;
     }
 
-    const quiz = quizData.quizzes[0];
+    const quizzes = quizData.quizzes;
+    let currentIndex = 0;
+    let score = 0;
+    const answers = [];
 
-    quizSection.innerHTML = `
-      <div class="quiz-box">
-        <div class="quiz-question"><strong>${escapeHtml(subject)}</strong>: ${escapeHtml(quiz.question)}</div>
-        <div class="quiz-options">
-          <button class="quiz-option" data-answer="A">A. ${escapeHtml(quiz.option_a)}</button>
-          <button class="quiz-option" data-answer="B">B. ${escapeHtml(quiz.option_b)}</button>
-          <button class="quiz-option" data-answer="C">C. ${escapeHtml(quiz.option_c)}</button>
-          <button class="quiz-option" data-answer="D">D. ${escapeHtml(quiz.option_d)}</button>
+    function renderQuestion() {
+      const quiz = quizzes[currentIndex];
+
+      quizSection.innerHTML = `
+        <div class="quiz-box">
+          <div class="quiz-header">
+            <div><strong>Subject:</strong> ${escapeHtml(subject)}</div>
+            <div><strong>Question:</strong> ${currentIndex + 1} / ${quizzes.length}</div>
+            <div><strong>Score:</strong> ${score}</div>
+          </div>
+
+          <div class="quiz-progress-wrap">
+            <div class="quiz-progress-bar" style="width:${((currentIndex) / quizzes.length) * 100}%"></div>
+          </div>
+
+          <div class="quiz-question">
+            ${escapeHtml(quiz.question)}
+          </div>
+
+          <div class="quiz-options">
+            <button class="quiz-option" data-answer="A">A. ${escapeHtml(quiz.option_a)}</button>
+            <button class="quiz-option" data-answer="B">B. ${escapeHtml(quiz.option_b)}</button>
+            <button class="quiz-option" data-answer="C">C. ${escapeHtml(quiz.option_c)}</button>
+            <button class="quiz-option" data-answer="D">D. ${escapeHtml(quiz.option_d)}</button>
+          </div>
+
+          <div id="quizFeedback" class="helper-box quiz-feedback" style="display:none;"></div>
+
+          <div class="quiz-actions">
+            <button id="nextQuizBtn" class="quiz-next-btn" style="display:none;">
+              ${currentIndex < quizzes.length - 1 ? "Next Question ➜" : "Show Result 🎉"}
+            </button>
+          </div>
         </div>
-        <div id="quizFeedback" class="helper-box" style="display:none; margin-top:12px;"></div>
-      </div>
-    `;
+      `;
 
-    const buttons = quizSection.querySelectorAll(".quiz-option");
-    buttons.forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const studentAnswer = btn.getAttribute("data-answer");
+      const buttons = quizSection.querySelectorAll(".quiz-option");
+      const feedback = document.getElementById("quizFeedback");
+      const nextBtn = document.getElementById("nextQuizBtn");
 
-        const result = await fetch(`${SCRIPT_URL}`, {
-          method: "POST",
-          body: JSON.stringify({
-            action: "submitQuizAnswer",
-            student_id: STUDENT_ID,
-            subject: subject,
-            question: quiz.question,
-            student_answer: studentAnswer
-          })
-        }).then(r => r.json());
+      let answered = false;
 
-        const feedback = document.getElementById("quizFeedback");
-        feedback.style.display = "block";
+      buttons.forEach(btn => {
+        btn.addEventListener("click", async () => {
+          if (answered) return;
+          answered = true;
 
-        if (result.result === "Correct") {
-          feedback.innerHTML = `
-            <strong>✅ Correct!</strong><br>
-            Great job. Keep learning.
-          `;
+          const studentAnswer = btn.getAttribute("data-answer");
+
+          buttons.forEach(b => {
+            b.disabled = true;
+            b.classList.add("quiz-disabled");
+          });
+
+          try {
+            const result = await fetch(`${SCRIPT_URL}`, {
+              method: "POST",
+              body: JSON.stringify({
+                action: "submitQuizAnswer",
+                student_id: STUDENT_ID,
+                subject: subject,
+                question: quiz.question,
+                student_answer: studentAnswer
+              })
+            }).then(r => r.json());
+
+            const correctAnswer = String(result.correct_answer || "").toUpperCase();
+
+            buttons.forEach(b => {
+              const answer = b.getAttribute("data-answer");
+              if (answer === correctAnswer) {
+                b.classList.add("quiz-correct");
+              }
+              if (answer === studentAnswer && answer !== correctAnswer) {
+                b.classList.add("quiz-wrong");
+              }
+            });
+
+            feedback.style.display = "block";
+
+            if (result.result === "Correct") {
+              score++;
+              feedback.innerHTML = `
+                <strong>✅ Correct!</strong><br>
+                Excellent work. Keep going!
+              `;
+              feedback.classList.add("quiz-feedback-correct");
+              feedback.classList.remove("quiz-feedback-wrong");
+            } else {
+              feedback.innerHTML = `
+                <strong>❌ Wrong answer</strong><br>
+                <strong>Correct answer:</strong> ${escapeHtml(correctAnswer)}<br>
+                <strong>Explanation:</strong> ${escapeHtml(result.explanation || "Please review the lesson and try again.")}
+              `;
+              feedback.classList.add("quiz-feedback-wrong");
+              feedback.classList.remove("quiz-feedback-correct");
+            }
+
+            answers.push({
+              question: quiz.question,
+              student_answer: studentAnswer,
+              correct_answer: correctAnswer,
+              result: result.result
+            });
+
+            nextBtn.style.display = "inline-block";
+
+          } catch (error) {
+            feedback.style.display = "block";
+            feedback.innerHTML = `
+              <strong>⚠️ Error</strong><br>
+              Unable to submit answer. Please try again.
+            `;
+            nextBtn.style.display = "inline-block";
+          }
+        });
+      });
+
+      nextBtn.addEventListener("click", () => {
+        currentIndex++;
+
+        if (currentIndex < quizzes.length) {
+          renderQuestion();
         } else {
-          feedback.innerHTML = `
-            <strong>❌ Wrong answer</strong><br>
-            Correct answer: ${escapeHtml(result.correct_answer)}<br>
-            Explanation: ${escapeHtml(result.explanation || "Please review the lesson and try again.")}
-          `;
+          renderFinalResult();
         }
       });
-    });
+    }
+
+    function renderFinalResult() {
+      const total = quizzes.length;
+      const percent = Math.round((score / total) * 100);
+
+      let message = "Good try. Keep practicing every day.";
+      let emoji = "🌟";
+
+      if (percent === 100) {
+        message = "Amazing! You got everything correct!";
+        emoji = "🏆";
+      } else if (percent >= 80) {
+        message = "Very good job! You understood the lesson well.";
+        emoji = "🎉";
+      } else if (percent >= 50) {
+        message = "Nice effort. A little more practice will make you stronger.";
+        emoji = "👍";
+      }
+
+      quizSection.innerHTML = `
+        <div class="quiz-box">
+          <div class="quiz-result-title">${emoji} Quiz Completed</div>
+
+          <div class="quiz-result-score">
+            Score: ${score} / ${total} (${percent}%)
+          </div>
+
+          <div class="quiz-result-message">
+            ${escapeHtml(message)}
+          </div>
+
+          <div class="quiz-result-list">
+            ${answers.map((item, index) => `
+              <div class="quiz-result-item">
+                <strong>Q${index + 1}:</strong> ${escapeHtml(item.result)}
+                <br>
+                Your answer: ${escapeHtml(item.student_answer)} |
+                Correct: ${escapeHtml(item.correct_answer)}
+              </div>
+            `).join("")}
+          </div>
+
+          <div class="quiz-actions">
+            <button id="restartQuizBtn" class="quiz-next-btn">Try Again 🔄</button>
+          </div>
+        </div>
+      `;
+
+      const restartBtn = document.getElementById("restartQuizBtn");
+      if (restartBtn) {
+        restartBtn.addEventListener("click", () => {
+          currentIndex = 0;
+          score = 0;
+          answers.length = 0;
+          renderQuestion();
+        });
+      }
+    }
+
+    renderQuestion();
 
   } catch (error) {
     quizSection.innerHTML = `<div class="empty">Quiz loading failed.</div>`;
