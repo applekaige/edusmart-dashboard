@@ -28,7 +28,40 @@ function formatCurrency(value) {
   const number = Number(value || 0);
   return `RM ${number.toFixed(2)}`;
 }
+function renderTimetable(todayItems, tomorrowItems, todayDay, tomorrowDay) {
+  const todayBox = document.getElementById("todayTimetable");
+  const tomorrowBox = document.getElementById("tomorrowPreparation");
 
+  // ===== TODAY =====
+  if (todayBox) {
+    if (!todayItems || todayItems.length === 0) {
+      todayBox.innerHTML = `<div class="empty">No timetable found for ${todayDay}.</div>`;
+    } else {
+      todayBox.innerHTML = todayItems.map(item => `
+        <div class="simple-list-item">
+          <strong>Period ${item.period} - ${item.subject}</strong><br>
+          <span>Book: ${item.book || "-"}</span><br>
+          <span>Notes: ${item.notes || "-"}</span>
+        </div>
+      `).join("");
+    }
+  }
+
+  // ===== TOMORROW =====
+  if (tomorrowBox) {
+    if (!tomorrowItems || tomorrowItems.length === 0) {
+      tomorrowBox.innerHTML = `<div class="empty">No timetable found for ${tomorrowDay}.</div>`;
+    } else {
+      tomorrowBox.innerHTML = tomorrowItems.map(item => `
+        <div class="simple-list-item">
+          <strong>Period ${item.period} - ${item.subject}</strong><br>
+          <span>Bring: ${item.book || "-"}</span><br>
+          <span>Notes: ${item.notes || "-"}</span>
+        </div>
+      `).join("");
+    }
+  }
+}
 function formatDate(value) {
   if (!value) return "-";
   const date = new Date(value);
