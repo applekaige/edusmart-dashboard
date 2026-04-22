@@ -408,3 +408,31 @@ button:disabled {
   border-radius: 10px;
   border: 1px solid #cbd5e1;
 }
+.table-wrap {
+  overflow-x: auto;
+  margin-top: 16px;
+}
+
+.analytics-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+.analytics-table th,
+.analytics-table td {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 14px;
+  vertical-align: top;
+}
+
+.analytics-table th {
+  background: #f8fafc;
+  color: #334155;
+}
+
+.analytics-table tr:hover td {
+  background: #f8fbff;
+}
