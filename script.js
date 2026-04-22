@@ -110,7 +110,73 @@ function fetchJsonp(url) {
     document.body.appendChild(script);
   });
 }
+async function loadQuizForSubject(subject) {
+  const quizSection = document.getElementById("quizSection");
+  if (!quizSection) return;
 
+  try {
+    const quizUrl =
+      `${SCRIPT_URL}?action=getDailyQuiz&id=${encodeURIComponent(STUDENT_ID)}&subject=${encodeURIComponent(subject)}`;
+    const quizData = await fetchJsonp(quizUrl);
+
+    if (quizData.status !== "success" || !quizData.quizzes || !quizData.quizzes.length) {
+      quizSection.innerHTML = `<div class="empty">No quiz available for ${escapeHtml(subject)}.</div>`;
+      return;
+    }
+
+    const quiz = quizData.quizzes[0];
+
+    quizSection.innerHTML = `
+      <div class="quiz-box">
+        <div class="quiz-question"><strong>${escapeHtml(subject)}</strong>: ${escapeHtml(quiz.question)}</div>
+        <div class="quiz-options">
+          <button class="quiz-option" data-answer="A">A. ${escapeHtml(quiz.option_a)}</button>
+          <button class="quiz-option" data-answer="B">B. ${escapeHtml(quiz.option_b)}</button>
+          <button class="quiz-option" data-answer="C">C. ${escapeHtml(quiz.option_c)}</button>
+          <button class="quiz-option" data-answer="D">D. ${escapeHtml(quiz.option_d)}</button>
+        </div>
+        <div id="quizFeedback" class="helper-box" style="display:none; margin-top:12px;"></div>
+      </div>
+    `;
+
+    const buttons = quizSection.querySelectorAll(".quiz-option");
+    buttons.forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const studentAnswer = btn.getAttribute("data-answer");
+
+        const result = await fetch(`${SCRIPT_URL}`, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "submitQuizAnswer",
+            student_id: STUDENT_ID,
+            subject: subject,
+            question: quiz.question,
+            student_answer: studentAnswer
+          })
+        }).then(r => r.json());
+
+        const feedback = document.getElementById("quizFeedback");
+        feedback.style.display = "block";
+
+        if (result.result === "Correct") {
+          feedback.innerHTML = `
+            <strong>✅ Correct!</strong><br>
+            Great job. Keep learning.
+          `;
+        } else {
+          feedback.innerHTML = `
+            <strong>❌ Wrong answer</strong><br>
+            Correct answer: ${escapeHtml(result.correct_answer)}<br>
+            Explanation: ${escapeHtml(result.explanation || "Please review the lesson and try again.")}
+          `;
+        }
+      });
+    });
+
+  } catch (error) {
+    quizSection.innerHTML = `<div class="empty">Quiz loading failed.</div>`;
+  }
+}
 function speakText(text) {
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = "en-MY";
@@ -287,7 +353,27 @@ async function init() {
     if (data.status !== "success") {
       throw new Error(data.message || "Failed to load dashboard");
     }
+        const timetableUrl =
+      `${SCRIPT_URL}?action=getStudentTimetable&id=${encodeURIComponent(STUDENT_ID)}`;
+    const timetableData = await fetchJsonp(timetableUrl);
 
+    if (timetableData.status === "success") {
+      renderTimetable(
+        timetableData.today_timetable || [],
+        timetableData.tomorrow_timetable || [],
+        timetableData.today_day || "Today",
+        timetableData.tomorrow_day || "Tomorrow"
+      );
+
+      if (timetableData.today_timetable && timetableData.today_timetable.length > 0) {
+        loadQuizForSubject(timetableData.today_timetable[0].subject);
+      } else {
+        const quizSection = document.getElementById("quizSection");
+        if (quizSection) {
+          quizSection.innerHTML = `<div class="empty">No subject available for today's quiz.</div>`;
+        }
+      }
+    }
     renderStudent(data.student);
     renderAISummary(data.ai_summary, data.pending_count, data.overdue_count);
     renderAssignments(data.assignments);
