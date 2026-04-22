@@ -534,7 +534,34 @@ async function init() {
         const timetableUrl =
       `${SCRIPT_URL}?action=getStudentTimetable&id=${encodeURIComponent(STUDENT_ID)}`;
     const timetableData = await fetchJsonp(timetableUrl);
+    // ===== LOAD TIMETABLE + QUIZ =====
+        const timetableUrl =
+      `${SCRIPT_URL}?action=getStudentTimetable&id=${encodeURIComponent(STUDENT_ID)}`;
 
+       const timetableData = await fetchJsonp(timetableUrl);
+
+if (timetableData.status === "success") {
+
+  renderTimetable(
+    timetableData.today_timetable || [],
+    timetableData.tomorrow_timetable || [],
+    timetableData.today_day || "Today",
+    timetableData.tomorrow_day || "Tomorrow"
+  );
+
+  // Load quiz based on first subject today
+  if (timetableData.today_timetable && timetableData.today_timetable.length > 0) {
+    loadQuizForSubject(timetableData.today_timetable[0].subject);
+  } else {
+    const quizSection = document.getElementById("quizSection");
+    if (quizSection) {
+      quizSection.innerHTML = `<div class="empty">No subject available for today's quiz.</div>`;
+    }
+  }
+
+} else {
+  console.error("Timetable load failed:", timetableData.message);
+}
     if (timetableData.status === "success") {
       renderTimetable(
         timetableData.today_timetable || [],
