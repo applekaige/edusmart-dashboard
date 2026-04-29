@@ -481,7 +481,27 @@ function renderAssignments(assignments) {
     container.appendChild(card);
   });
 }
+function renderPerformance(data) {
+  const container = document.getElementById("performanceSection");
 
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="card">
+      <h3>📊 Student Performance Index</h3>
+      <p><strong>Yearly:</strong> ${data.yearly_index}%</p>
+      <p><strong>Total Assignments:</strong> ${data.total_assignments}</p>
+      <p><strong>Completed:</strong> ${data.completed_assignments}</p>
+
+      <hr/>
+
+      <p><strong>Q1:</strong> ${data.quarterly.Q1.index}%</p>
+      <p><strong>Q2:</strong> ${data.quarterly.Q2.index}%</p>
+      <p><strong>Q3:</strong> ${data.quarterly.Q3.index}%</p>
+      <p><strong>Q4:</strong> ${data.quarterly.Q4.index}%</p>
+    </div>
+  `;
+}
 async function init() {
   const statusBox = document.getElementById("statusMsg");
   if (statusBox) statusBox.innerText = "Loading data...";
@@ -532,5 +552,11 @@ async function init() {
     console.error(error);
   }
 }
+// Load performance index
+const perfUrl = `${SCRIPT_URL}?action=getPerformanceIndex&id=${encodeURIComponent(STUDENT_ID)}`;
+const perfData = await fetchJsonp(perfUrl);
 
+if (perfData.status === "success") {
+  renderPerformance(perfData);
+}
 init();
