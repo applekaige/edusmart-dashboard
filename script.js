@@ -5,7 +5,8 @@ const STUDENT_ID =
   localStorage.getItem("edusmart_student_id") ||
   params.get("id") ||
   "";
-
+setInterval(loadLiveAttendance, 3000);
+loadLiveAttendance();
 if (!STUDENT_ID) {
   window.location.href = "login.html";
   throw new Error("No student ID found");
