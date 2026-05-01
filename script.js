@@ -557,7 +557,33 @@ async function checkRFIDEvent() {
     console.error("RFID check error:", err);
   }
 }
+async function loadLiveAttendance() {
+  try {
+    const url = `${SCRIPT_URL}?action=getLiveAttendance`;
+    const data = await fetchJsonp(url);
 
+    if (data.status !== "success") return;
+
+    const countBox = document.getElementById("attendanceCount");
+    const listBox = document.getElementById("attendanceList");
+
+    countBox.innerHTML = `👨‍🎓 Total Present: ${data.total}`;
+
+    listBox.innerHTML = data.students.map(s => {
+      const time = new Date(s.time).toLocaleTimeString();
+
+      return `
+        <div class="attendance-item">
+          <strong>${escapeHtml(s.student_name)}</strong><br>
+          ${escapeHtml(s.class_name)} | ${time}
+        </div>
+      `;
+    }).join("");
+
+  } catch (err) {
+    console.error(err);
+  }
+}
 function showRFIDPopup(data) {
   const popup = document.getElementById("rfidPopup");
   const msg = document.getElementById("rfidMessage");
