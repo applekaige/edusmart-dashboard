@@ -24,7 +24,8 @@ if (logoutBtn) {
 }
 
 function formatCurrency(value) {
-  return `RM ${Number(value || 0).toFixed(2)}`;
+  const number = Number(value || 0);
+  return `RM ${number.toFixed(2)}`;
 }
 
 function formatDate(value) {
@@ -50,7 +51,6 @@ function fetchJsonp(url) {
   return new Promise((resolve, reject) => {
     const callbackName =
       "jsonp_cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
-
     const script = document.createElement("script");
 
     window[callbackName] = function(data) {
@@ -84,9 +84,9 @@ function renderAISummary(summary, pendingCount, overdueCount) {
   if (!box) return;
 
   box.innerHTML = `
-    <strong>AI Summary:</strong> ${escapeHtml(summary || "No summary available.")}<br>
-    <strong>Pending:</strong> ${pendingCount || 0} |
-    <strong>Overdue:</strong> ${overdueCount || 0}
+    <strong>AI Summary:</strong> ${escapeHtml(summary)}<br>
+    <strong>Pending:</strong> ${pendingCount} |
+    <strong>Overdue:</strong> ${overdueCount}
   `;
 }
 
@@ -131,12 +131,26 @@ function renderTimetable(todayItems, tomorrowItems, todayDay, tomorrowDay) {
   }
 }
 
-function speakText(text) {
-  if (!("speechSynthesis" in window)) {
-    alert("Voice feature is not supported in this browser.");
-    return;
-  }
+function renderPerformance(data) {
+  const container = document.getElementById("performanceSection");
+  if (!container) return;
 
+  container.innerHTML = `
+    <div class="card performance-card">
+      <h3>📊 Student Performance Index</h3>
+      <p><strong>Yearly:</strong> ${escapeHtml(data.yearly_index)}%</p>
+      <p><strong>Total Assignments:</strong> ${escapeHtml(data.total_assignments)}</p>
+      <p><strong>Completed:</strong> ${escapeHtml(data.completed_assignments)}</p>
+      <hr>
+      <p><strong>Q1:</strong> ${escapeHtml(data.quarterly.Q1.index)}%</p>
+      <p><strong>Q2:</strong> ${escapeHtml(data.quarterly.Q2.index)}%</p>
+      <p><strong>Q3:</strong> ${escapeHtml(data.quarterly.Q3.index)}%</p>
+      <p><strong>Q4:</strong> ${escapeHtml(data.quarterly.Q4.index)}%</p>
+    </div>
+  `;
+}
+
+function speakText(text) {
   window.speechSynthesis.cancel();
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = "en-MY";
@@ -175,27 +189,25 @@ function renderAssignments(assignments) {
     const safeStatus = escapeHtml(item.status || "Pending");
     const dueDate = formatDate(item.due_date);
 
-    const attachmentHtml = item.attachment_url
-      ? item.attachment_type === "image"
-        ? `<div class="attachment-box">
-             <strong>Attachment:</strong><br>
-             <img src="${escapeHtml(item.attachment_url)}" alt="${escapeHtml(item.attachment_name)}" class="assignment-image">
-             <div><a href="${escapeHtml(item.attachment_url)}" target="_blank">Open image</a></div>
-           </div>`
-        : `<div class="attachment-box">
-             <strong>Attachment:</strong>
-             <div><a href="${escapeHtml(item.attachment_url)}" target="_blank">${escapeHtml(item.attachment_name || "Open file")}</a></div>
-           </div>`
-      : "";
+    const attachmentHtml =
+      item.attachment_url && String(item.attachment_url).startsWith("http")
+        ? `
+          <div class="attachment-box">
+            <strong>Attachment:</strong>
+            <div>
+              <a href="${escapeHtml(item.attachment_url)}" target="_blank">
+                ${escapeHtml(item.attachment_name || "Open file")}
+              </a>
+            </div>
+          </div>`
+        : "";
 
     card.innerHTML = `
       <h3>${safeSubject}</h3>
       <p class="assignment-meta"><strong>Task:</strong> ${safeDetail}</p>
       <p class="assignment-meta"><strong>Due Date:</strong> ${escapeHtml(dueDate)}</p>
       ${attachmentHtml}
-      <span class="status-badge ${safeStatus.toLowerCase() === "pending" ? "status-pending" : "status-done"}">
-        ${safeStatus}
-      </span>
+      <span class="status-badge ${safeStatus.toLowerCase() === "pending" ? "status-pending" : "status-done"}">${safeStatus}</span>
       <button class="helper-btn">Help Me Understand</button>
       <button class="voice-btn">🔊 Voice Explain</button>
       <div class="helper-box" style="display:none; margin-top:12px;"></div>
@@ -207,18 +219,14 @@ function renderAssignments(assignments) {
     const helperBox = card.querySelector(".helper-box");
     const ackBtn = card.querySelector(".ack-btn");
 
-    async function loadHelper() {
-      const helperUrl =
-        `${SCRIPT_URL}?action=getAssignmentHelper&id=${encodeURIComponent(STUDENT_ID)}&subject=${encodeURIComponent(item.subject)}`;
-      return await fetchJsonp(helperUrl);
-    }
-
     helperBtn.addEventListener("click", async () => {
       helperBtn.innerText = "Loading help...";
       helperBtn.disabled = true;
 
       try {
-        const helperData = await loadHelper();
+        const helperUrl =
+          `${SCRIPT_URL}?action=getAssignmentHelper&id=${encodeURIComponent(STUDENT_ID)}&subject=${encodeURIComponent(item.subject)}`;
+        const helperData = await fetchJsonp(helperUrl);
 
         if (helperData.status === "success") {
           helperBox.style.display = "block";
@@ -242,11 +250,10 @@ function renderAssignments(assignments) {
     });
 
     voiceBtn.addEventListener("click", async () => {
-      voiceBtn.innerText = "Loading voice...";
-      voiceBtn.disabled = true;
-
       try {
-        const helperData = await loadHelper();
+        const helperUrl =
+          `${SCRIPT_URL}?action=getAssignmentHelper&id=${encodeURIComponent(STUDENT_ID)}&subject=${encodeURIComponent(item.subject)}`;
+        const helperData = await fetchJsonp(helperUrl);
 
         if (helperData.status === "success") {
           const text =
@@ -254,14 +261,10 @@ function renderAssignments(assignments) {
             helperData.simple_explanation + ". " +
             "Parent action. " + helperData.parent_action + ". " +
             "Estimated time. " + helperData.estimated_time;
-
           speakText(text);
         }
       } catch (error) {
         console.error(error);
-      } finally {
-        voiceBtn.innerText = "🔊 Voice Explain";
-        voiceBtn.disabled = false;
       }
     });
 
@@ -348,7 +351,6 @@ async function loadQuizForSubject(subject) {
       const buttons = quizSection.querySelectorAll(".quiz-option");
       const feedback = document.getElementById("quizFeedback");
       const nextBtn = document.getElementById("nextQuizBtn");
-
       let answered = false;
 
       buttons.forEach(btn => {
@@ -387,10 +389,7 @@ async function loadQuizForSubject(subject) {
 
             if (result.result === "Correct") {
               score++;
-              feedback.innerHTML = `
-                <strong>✅ Correct!</strong><br>
-                Excellent work. Keep going!
-              `;
+              feedback.innerHTML = `<strong>✅ Correct!</strong><br>Excellent work. Keep going!`;
               feedback.classList.add("quiz-feedback-correct");
               feedback.classList.remove("quiz-feedback-wrong");
             } else {
@@ -413,20 +412,19 @@ async function loadQuizForSubject(subject) {
             nextBtn.style.display = "inline-block";
           } catch (error) {
             feedback.style.display = "block";
-            feedback.innerHTML = `
-              <strong>⚠️ Error</strong><br>
-              Unable to submit answer. Please try again.
-            `;
+            feedback.innerHTML = `<strong>⚠️ Error</strong><br>Unable to submit answer. Please try again.`;
             nextBtn.style.display = "inline-block";
-            console.error(error);
           }
         });
       });
 
       nextBtn.addEventListener("click", () => {
         currentIndex++;
-        if (currentIndex < quizzes.length) renderQuestion();
-        else renderFinalResult();
+        if (currentIndex < quizzes.length) {
+          renderQuestion();
+        } else {
+          renderFinalResult();
+        }
       });
     }
 
@@ -486,80 +484,6 @@ async function loadQuizForSubject(subject) {
   }
 }
 
-async function loadTimetableAndQuiz() {
-  try {
-    const timetableUrl =
-      `${SCRIPT_URL}?action=getStudentTimetable&id=${encodeURIComponent(STUDENT_ID)}`;
-    const timetableData = await fetchJsonp(timetableUrl);
-
-    if (timetableData.status === "success") {
-      renderTimetable(
-        timetableData.today_timetable || [],
-        timetableData.tomorrow_timetable || [],
-        timetableData.today_day || "Today",
-        timetableData.tomorrow_day || "Tomorrow"
-      );
-
-      if (timetableData.today_timetable && timetableData.today_timetable.length > 0) {
-        await loadQuizForSubject(timetableData.today_timetable[0].subject);
-      } else {
-        const quizSection = document.getElementById("quizSection");
-        if (quizSection) {
-          quizSection.innerHTML = `<div class="empty">No subject available for today's quiz.</div>`;
-        }
-      }
-    }
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-function renderPerformance(data) {
-  const container = document.getElementById("performanceSection");
-  if (!container) return;
-
-  const q = data.quarterly || {
-    Q1: { index: 0 },
-    Q2: { index: 0 },
-    Q3: { index: 0 },
-    Q4: { index: 0 }
-  };
-
-  container.innerHTML = `
-    <div class="card">
-      <h3>📊 Student Performance Index</h3>
-      <p><strong>Yearly:</strong> ${escapeHtml(data.yearly_index ?? 0)}%</p>
-      <p><strong>Total Assignments:</strong> ${escapeHtml(data.total_assignments ?? 0)}</p>
-      <p><strong>Completed:</strong> ${escapeHtml(data.completed_assignments ?? 0)}</p>
-      <hr/>
-      <p><strong>Q1:</strong> ${escapeHtml(q.Q1?.index ?? 0)}%</p>
-      <p><strong>Q2:</strong> ${escapeHtml(q.Q2?.index ?? 0)}%</p>
-      <p><strong>Q3:</strong> ${escapeHtml(q.Q3?.index ?? 0)}%</p>
-      <p><strong>Q4:</strong> ${escapeHtml(q.Q4?.index ?? 0)}%</p>
-    </div>
-  `;
-}
-
-async function loadPerformanceIndex() {
-  const container = document.getElementById("performanceSection");
-  if (!container) return;
-
-  try {
-    const perfUrl =
-      `${SCRIPT_URL}?action=getPerformanceIndex&id=${encodeURIComponent(STUDENT_ID)}`;
-    const perfData = await fetchJsonp(perfUrl);
-
-    if (perfData.status === "success") {
-      renderPerformance(perfData);
-    } else {
-      container.innerHTML = `<div class="empty">Performance data not available.</div>`;
-    }
-  } catch (error) {
-    container.innerHTML = `<div class="empty">Performance loading failed.</div>`;
-    console.error(error);
-  }
-}
-
 async function init() {
   const statusBox = document.getElementById("statusMsg");
   if (statusBox) statusBox.innerText = "Loading data...";
@@ -577,17 +501,42 @@ async function init() {
     renderAISummary(data.ai_summary, data.pending_count, data.overdue_count);
     renderAssignments(data.assignments);
 
-    await loadTimetableAndQuiz();
-    await loadPerformanceIndex();
+    const timetableUrl =
+      `${SCRIPT_URL}?action=getStudentTimetable&id=${encodeURIComponent(STUDENT_ID)}`;
+    const timetableData = await fetchJsonp(timetableUrl);
+
+    if (timetableData.status === "success") {
+      renderTimetable(
+        timetableData.today_timetable || [],
+        timetableData.tomorrow_timetable || [],
+        timetableData.today_day || "Today",
+        timetableData.tomorrow_day || "Tomorrow"
+      );
+
+      if (timetableData.today_timetable && timetableData.today_timetable.length > 0) {
+        loadQuizForSubject(timetableData.today_timetable[0].subject);
+      } else {
+        const quizSection = document.getElementById("quizSection");
+        if (quizSection) {
+          quizSection.innerHTML = `<div class="empty">No subject available for today's quiz.</div>`;
+        }
+      }
+    }
+
+    const perfUrl =
+      `${SCRIPT_URL}?action=getPerformanceIndex&id=${encodeURIComponent(STUDENT_ID)}`;
+    const perfData = await fetchJsonp(perfUrl);
+
+    if (perfData.status === "success") {
+      renderPerformance(perfData);
+    }
 
     if (statusBox) {
       statusBox.innerText =
         `Backend online | Last sync: ${new Date().toLocaleString("en-MY")}`;
     }
   } catch (error) {
-    if (statusBox) {
-      statusBox.innerText = `Connection failed: ${error.message}`;
-    }
+    if (statusBox) statusBox.innerText = `Connection failed: ${error.message}`;
     console.error(error);
   }
 }
