@@ -623,3 +623,12 @@ button:disabled {
   from { transform: scale(0.8); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
+#attendanceList {
+  margin-top: 10px;
+}
+
+.attendance-item {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+}
