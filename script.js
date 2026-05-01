@@ -539,6 +539,42 @@ async function init() {
     if (statusBox) statusBox.innerText = `Connection failed: ${error.message}`;
     console.error(error);
   }
+  let lastRFIDTimestamp = "";
+
+async function checkRFIDEvent() {
+  try {
+    const url = `${SCRIPT_URL}?action=getLastRFIDEvent`;
+    const data = await fetchJsonp(url);
+
+    if (data.status !== "success") return;
+
+    if (data.timestamp !== lastRFIDTimestamp) {
+      lastRFIDTimestamp = data.timestamp;
+      showRFIDPopup(data);
+    }
+  } catch (err) {
+    console.error("RFID check error:", err);
+  }
+}
+
+function showRFIDPopup(data) {
+  const popup = document.getElementById("rfidPopup");
+  const msg = document.getElementById("rfidMessage");
+
+  const time = new Date(data.timestamp).toLocaleTimeString();
+
+  msg.innerHTML = `
+    <h2>✅ ${data.student_name}</h2>
+    <p>📍 ${data.class_name}</p>
+    <p>⏰ ${time}</p>
+  `;
+
+  popup.style.display = "flex";
+
+  setTimeout(() => {
+    popup.style.display = "none";
+  }, 3000);
+}
 }
 
 init();
