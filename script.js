@@ -545,6 +545,7 @@ async function checkRFIDEvent() {
   try {
     const url = `${SCRIPT_URL}?action=getLastRFIDEvent`;
     const data = await fetchJsonp(url);
+    setInterval(checkRFIDEvent, 3000);
 
     if (data.status !== "success") return;
 
