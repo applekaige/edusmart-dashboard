@@ -152,7 +152,24 @@ function renderPerformance(data) {
     </div>
   `;
 }
+function playBeep() {
+  try {
+    const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
+    audio.play();
+  } catch (e) {
+    console.warn("Sound failed", e);
+  }
+}
+function speakText(text) {
+  if (!window.speechSynthesis) return;
 
+  const speech = new SpeechSynthesisUtterance(text);
+  speech.lang = "en-US";
+  speech.rate = 1;
+  speech.pitch = 1;
+
+  window.speechSynthesis.speak(speech);
+}
 // ================= ASSIGNMENTS =================
 function renderAssignments(list) {
   const box = document.getElementById("assignmentList");
