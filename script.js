@@ -13,12 +13,22 @@ if (!STUDENT_ID) {
   throw new Error("No student ID found");
 }
 
+// Save ID if opened using ?id=
+localStorage.setItem("edusmart_student_id", STUDENT_ID);
+
+// ================= GLOBAL FLAGS =================
+let lastRFIDKey = "";
+let isRFIDPopupVisible = false;
+let dashboardLoading = false;
+let attendanceLoading = false;
+let rfidChecking = false;
+
 // ================= INIT =================
 document.addEventListener("DOMContentLoaded", () => {
   init();
 
-  setInterval(loadLiveAttendance, 3000);
-  setInterval(checkRFIDEvent, 3000);
+  setInterval(loadLiveAttendance, 8000);
+  setInterval(checkRFIDEvent, 8000);
 
   loadLiveAttendance();
   checkRFIDEvent();
@@ -48,6 +58,7 @@ function formatDate(value) {
   if (!value) return "-";
   const d = new Date(value);
   if (isNaN(d.getTime())) return String(value);
+
   return d.toLocaleDateString("en-MY", {
     year: "numeric",
     month: "short",
@@ -66,7 +77,7 @@ function escapeHtml(text) {
 
 function setText(id, val) {
   const el = document.getElementById(id);
-  if (el) el.innerText = val || "-";
+  if (el) el.innerText = val !== undefined && val !== null && val !== "" ? val : "-";
 }
 
 // ================= JSONP =================
@@ -77,13 +88,21 @@ function fetchJsonp(url) {
 
     const script = document.createElement("script");
 
-    window[callbackName] = function(data) {
+    const timeout = setTimeout(() => {
+      reject(new Error("JSONP timeout"));
+      delete window[callbackName];
+      script.remove();
+    }, 15000);
+
+    window[callbackName] = function (data) {
+      clearTimeout(timeout);
       resolve(data);
       delete window[callbackName];
       script.remove();
     };
 
-    script.onerror = function() {
+    script.onerror = function () {
+      clearTimeout(timeout);
       reject(new Error("JSONP request failed"));
       delete window[callbackName];
       script.remove();
@@ -99,11 +118,13 @@ function fetchJsonp(url) {
 function renderStudent(student) {
   if (!student) return;
 
-  setText("studentId", student.student_id);
-  setText("studentName", student.student_name);
-  setText("className", student.class_name);
-  setText("parentName", student.parent_name);
-  setText("balance", formatCurrency(student.balance));
+  setText("studentId", student.student_id || student.StudentID);
+  setText("studentName", student.student_name || student.StudentName);
+  setText("className", student.class_name || student.Class);
+  setText("parentName", student.parent_name || student.ParentName);
+
+  const balance = student.balance ?? student.Balance ?? 0;
+  setText("balance", formatCurrency(balance));
 }
 
 // ================= AI SUMMARY =================
@@ -112,7 +133,7 @@ function renderAISummary(summary, pending, overdue) {
   if (!box) return;
 
   box.innerHTML = `
-    <strong>AI Summary:</strong> ${escapeHtml(summary || "")}<br>
+    <strong>AI Summary:</strong> ${escapeHtml(summary || "No summary available.")}<br>
     <strong>Pending:</strong> ${pending || 0} |
     <strong>Overdue:</strong> ${overdue || 0}
   `;
@@ -126,8 +147,8 @@ function renderPerformance(data) {
   el.innerHTML = `
     <div class="card">
       <h3>📊 Performance</h3>
-      <p><strong>Yearly:</strong> ${data.yearly_index || 0}%</p>
-      <p><strong>Completed:</strong> ${data.completed_assignments || 0}/${data.total_assignments || 0}</p>
+      <p><strong>Yearly:</strong> ${escapeHtml(data.yearly_index || 0)}%</p>
+      <p><strong>Completed:</strong> ${escapeHtml(data.completed_assignments || 0)}/${escapeHtml(data.total_assignments || 0)}</p>
     </div>
   `;
 }
@@ -144,30 +165,31 @@ function renderAssignments(list) {
 
   box.innerHTML = "";
 
-  list.sort((a, b) => new Date(a.due_date) - new Date(b.due_date));
+  list.sort((a, b) => new Date(a.due_date || a.DueDate) - new Date(b.due_date || b.DueDate));
 
   list.forEach(item => {
+    const subject = item.subject || item.Subject || "";
+    const detail = item.detail || item.Detail || "";
+    const dueDate = item.due_date || item.DueDate || "";
+    const status = item.status || item.Status || "Pending";
+
     const card = document.createElement("div");
     card.className = "assignment-card";
 
-    const dueDateObj = new Date(item.due_date);
+    const dueDateObj = new Date(dueDate);
     const today = new Date();
 
     const isOverdue =
       !isNaN(dueDateObj.getTime()) &&
       dueDateObj < today &&
-      String(item.status || "").toLowerCase() === "pending";
+      String(status).toLowerCase() === "pending";
 
-    if (isOverdue) {
-      card.classList.add("overdue");
-    }
-
-    const status = item.status || "Pending";
+    if (isOverdue) card.classList.add("overdue");
 
     card.innerHTML = `
-      <h3>${escapeHtml(item.subject)}</h3>
-      <p class="assignment-meta"><strong>Task:</strong> ${escapeHtml(item.detail)}</p>
-      <p class="assignment-meta"><strong>Due Date:</strong> ${escapeHtml(formatDate(item.due_date))}</p>
+      <h3>${escapeHtml(subject)}</h3>
+      <p class="assignment-meta"><strong>Task:</strong> ${escapeHtml(detail)}</p>
+      <p class="assignment-meta"><strong>Due Date:</strong> ${escapeHtml(formatDate(dueDate))}</p>
 
       <span class="status-badge ${
         String(status).toLowerCase() === "pending" ? "status-pending" : "status-done"
@@ -187,8 +209,8 @@ function renderAssignments(list) {
     const helperBtn = card.querySelector(".helper-btn");
     const helperBox = card.querySelector(".helper-box");
 
-    ackBtn.addEventListener("click", () => ack(item.subject, ackBtn));
-    helperBtn.addEventListener("click", () => helper(item.subject, helperBtn, helperBox));
+    ackBtn.addEventListener("click", () => ack(subject, ackBtn));
+    helperBtn.addEventListener("click", () => helper(subject, helperBtn, helperBox));
 
     box.appendChild(card);
   });
@@ -196,6 +218,11 @@ function renderAssignments(list) {
 
 // ================= ACK =================
 async function ack(subject, button) {
+  if (!subject) {
+    alert("Subject missing.");
+    return;
+  }
+
   if (button) {
     button.innerText = "Syncing...";
     button.disabled = true;
@@ -227,6 +254,11 @@ async function ack(subject, button) {
 
 // ================= HELPER =================
 async function helper(subject, button, box) {
+  if (!subject) {
+    alert("Subject missing.");
+    return;
+  }
+
   if (button) {
     button.innerText = "Loading help...";
     button.disabled = true;
@@ -241,11 +273,11 @@ async function helper(subject, button, box) {
       if (box) {
         box.style.display = "block";
         box.innerHTML = `
-          <div><strong>Simple Explanation:</strong> ${escapeHtml(data.simple_explanation)}</div>
-          <div style="margin-top:8px;"><strong>Parent Action:</strong> ${escapeHtml(data.parent_action)}</div>
-          <div style="margin-top:8px;"><strong>Materials Needed:</strong> ${escapeHtml(data.materials_needed)}</div>
-          <div style="margin-top:8px;"><strong>Estimated Time:</strong> ${escapeHtml(data.estimated_time)}</div>
-          <div style="margin-top:8px;"><strong>Note:</strong> ${escapeHtml(data.encouragement)}</div>
+          <div><strong>Simple Explanation:</strong> ${escapeHtml(data.simple_explanation || "-")}</div>
+          <div style="margin-top:8px;"><strong>Parent Action:</strong> ${escapeHtml(data.parent_action || "-")}</div>
+          <div style="margin-top:8px;"><strong>Materials Needed:</strong> ${escapeHtml(data.materials_needed || "-")}</div>
+          <div style="margin-top:8px;"><strong>Estimated Time:</strong> ${escapeHtml(data.estimated_time || "-")}</div>
+          <div style="margin-top:8px;"><strong>Note:</strong> ${escapeHtml(data.encouragement || "-")}</div>
         `;
       } else {
         alert(data.simple_explanation || "No help available");
@@ -307,6 +339,9 @@ async function submitQuiz(subject, question, answer) {
 
 // ================= MAIN INIT =================
 async function init() {
+  if (dashboardLoading) return;
+  dashboardLoading = true;
+
   const status = document.getElementById("statusMsg");
   if (status) status.innerText = "Loading data...";
 
@@ -340,48 +375,87 @@ async function init() {
       status.innerText = `Connection failed: ${error.message}`;
     }
     console.error(error);
+  } finally {
+    dashboardLoading = false;
   }
 }
 
 // ================= RFID =================
-let lastRFID = "";
-
 async function checkRFIDEvent() {
+  if (rfidChecking) return;
+  rfidChecking = true;
+
   try {
     const data = await fetchJsonp(`${SCRIPT_URL}?action=getLastRFIDEvent`);
 
     if (!data || data.status !== "success") return;
 
-    if (data.timestamp && data.timestamp !== lastRFID) {
-      lastRFID = data.timestamp;
-      showRFIDPopup(data);
-    }
+    const studentId = data.student_id || data.StudentID || "";
+    const studentName = data.student_name || data.StudentName || "";
+    const className = data.class_name || data.Class || "";
+    const eventType = data.event_type || data.EventType || "";
+    const amount = data.amount || data.Amount || "";
+    const timestamp = data.timestamp || data.Timestamp || "";
+
+    if (!studentId && !studentName && !eventType) return;
+
+    const eventKey = `${studentId}_${studentName}_${eventType}_${amount}_${timestamp}`;
+
+    if (eventKey === lastRFIDKey) return;
+    lastRFIDKey = eventKey;
+
+    showRFIDPopup({
+      student_name: studentName,
+      class_name: className,
+      event_type: eventType,
+      amount: amount,
+      timestamp: timestamp
+    });
+
   } catch (error) {
     console.warn("RFID check failed", error);
+  } finally {
+    rfidChecking = false;
   }
 }
 
 function showRFIDPopup(data) {
+  if (isRFIDPopupVisible) return;
+
   const popup = document.getElementById("rfidPopup");
   const msg = document.getElementById("rfidMessage");
 
   if (!popup || !msg) return;
 
+  const studentName = data.student_name || "";
+  const className = data.class_name || "";
+  const eventType = data.event_type || "";
+  const amount = data.amount || "";
+
+  if (!studentName && !className && !eventType) return;
+
+  isRFIDPopupVisible = true;
+
   msg.innerHTML = `
-    <h2>${escapeHtml(data.student_name || "")}</h2>
-    <p>${escapeHtml(data.class_name || "")}</p>
-    <p>${escapeHtml(data.event_type || "")}</p>
+    <h2>${escapeHtml(studentName || "RFID Event")}</h2>
+    <p>${escapeHtml(className || "")}</p>
+    <p>${escapeHtml(eventType || "")}</p>
+    ${amount !== "" ? `<p><strong>${escapeHtml(formatCurrency(amount))}</strong></p>` : ""}
   `;
 
   popup.style.display = "flex";
 
   setTimeout(() => {
     popup.style.display = "none";
+    isRFIDPopupVisible = false;
   }, 3000);
 }
 
 // ================= LIVE ATTENDANCE =================
 async function loadLiveAttendance() {
+  if (attendanceLoading) return;
+  attendanceLoading = true;
+
   try {
     const data = await fetchJsonp(`${SCRIPT_URL}?action=getLiveAttendance`);
 
@@ -399,10 +473,12 @@ async function loadLiveAttendance() {
       }
 
       box.innerHTML = students.map(s => `
-        <div>${escapeHtml(s.student_name || "")}</div>
+        <div>${escapeHtml(s.student_name || s.StudentName || "")}</div>
       `).join("");
     }
   } catch (error) {
     console.warn("Live attendance failed", error);
+  } finally {
+    attendanceLoading = false;
   }
 }
