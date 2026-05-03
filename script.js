@@ -427,28 +427,59 @@ function showRFIDPopup(data) {
 
   if (!popup || !msg) return;
 
-  const studentName = data.student_name || "";
-  const className = data.class_name || "";
-  const eventType = data.event_type || "";
-  const amount = data.amount || "";
+  const name = data.student_name || "Student";
+  const cls = data.class_name || "";
+  const type = (data.event_type || "").toUpperCase();
+  const amount = Number(data.amount || 0);
 
-  if (!studentName && !className && !eventType) return;
+  let bgColor = "#2ecc71"; // default green
+  let title = "";
+  let subtitle = "";
+  let voiceText = "";
+
+  // 🎯 Smart UI logic
+  if (type === "ATTENDANCE") {
+    bgColor = "#2ecc71";
+    title = "✅ Attendance Recorded";
+    subtitle = `${name} (${cls}) is present`;
+    voiceText = `${name} attendance recorded`;
+  }
+
+  else if (type === "CANTEEN") {
+    bgColor = "#3498db";
+    title = "💰 Canteen Payment";
+    subtitle = `RM ${amount.toFixed(2)} deducted`;
+    voiceText = `Payment ${amount} ringgit`;
+  }
+
+  // 🚨 Low balance check
+  if (data.balance !== undefined && data.balance < 5) {
+    bgColor = "#e74c3c";
+    subtitle += `<br><strong>⚠️ Low Balance: RM ${data.balance.toFixed(2)}</strong>`;
+    voiceText += `. Low balance`;
+  }
 
   isRFIDPopupVisible = true;
 
   msg.innerHTML = `
-    <h2>${escapeHtml(studentName || "RFID Event")}</h2>
-    <p>${escapeHtml(className || "")}</p>
-    <p>${escapeHtml(eventType || "")}</p>
-    ${amount !== "" ? `<p><strong>${escapeHtml(formatCurrency(amount))}</strong></p>` : ""}
+    <div style="background:${bgColor};padding:20px;border-radius:12px;color:white;text-align:center;">
+      <h2>${escapeHtml(title)}</h2>
+      <p>${escapeHtml(subtitle)}</p>
+    </div>
   `;
 
   popup.style.display = "flex";
 
+  // 🔊 SOUND
+  playBeep();
+
+  // 🗣 VOICE
+  speakText(voiceText);
+
   setTimeout(() => {
     popup.style.display = "none";
     isRFIDPopupVisible = false;
-  }, 3000);
+  }, 3500);
 }
 
 // ================= LIVE ATTENDANCE =================
