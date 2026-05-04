@@ -13,7 +13,6 @@ if (!STUDENT_ID) {
   throw new Error("No student ID found");
 }
 
-// Save ID if opened using ?id=
 localStorage.setItem("edusmart_student_id", STUDENT_ID);
 
 // ================= GLOBAL FLAGS =================
@@ -36,9 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ================= UI EVENTS =================
 const refreshBtn = document.getElementById("refreshBtn");
-if (refreshBtn) {
-  refreshBtn.addEventListener("click", init);
-}
+if (refreshBtn) refreshBtn.addEventListener("click", init);
 
 const logoutBtn = document.getElementById("logoutBtn");
 if (logoutBtn) {
@@ -94,14 +91,14 @@ function fetchJsonp(url) {
       script.remove();
     }, 15000);
 
-    window[callbackName] = function (data) {
+    window[callbackName] = function(data) {
       clearTimeout(timeout);
       resolve(data);
       delete window[callbackName];
       script.remove();
     };
 
-    script.onerror = function () {
+    script.onerror = function() {
       clearTimeout(timeout);
       reject(new Error("JSONP request failed"));
       delete window[callbackName];
@@ -144,14 +141,24 @@ function renderPerformance(data) {
   const el = document.getElementById("performanceSection");
   if (!el || !data) return;
 
+  const q = data.quarterly || {};
+
   el.innerHTML = `
-    <div class="card">
-      <h3>📊 Performance</h3>
+    <div class="card performance-card">
+      <h3>📊 Student Performance Index</h3>
       <p><strong>Yearly:</strong> ${escapeHtml(data.yearly_index || 0)}%</p>
-      <p><strong>Completed:</strong> ${escapeHtml(data.completed_assignments || 0)}/${escapeHtml(data.total_assignments || 0)}</p>
+      <p><strong>Total Assignments:</strong> ${escapeHtml(data.total_assignments || 0)}</p>
+      <p><strong>Completed:</strong> ${escapeHtml(data.completed_assignments || 0)}</p>
+      <hr>
+      <p><strong>Q1:</strong> ${escapeHtml(q.Q1?.index || 0)}%</p>
+      <p><strong>Q2:</strong> ${escapeHtml(q.Q2?.index || 0)}%</p>
+      <p><strong>Q3:</strong> ${escapeHtml(q.Q3?.index || 0)}%</p>
+      <p><strong>Q4:</strong> ${escapeHtml(q.Q4?.index || 0)}%</p>
     </div>
   `;
 }
+
+// ================= SOUND / VOICE =================
 function playBeep() {
   try {
     const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
@@ -160,16 +167,19 @@ function playBeep() {
     console.warn("Sound failed", e);
   }
 }
+
 function speakText(text) {
   if (!window.speechSynthesis) return;
+
+  window.speechSynthesis.cancel();
 
   const speech = new SpeechSynthesisUtterance(text);
   speech.lang = "en-US";
   speech.rate = 1;
   speech.pitch = 1;
-
   window.speechSynthesis.speak(speech);
 }
+
 // ================= ASSIGNMENTS =================
 function renderAssignments(list) {
   const box = document.getElementById("assignmentList");
@@ -203,10 +213,24 @@ function renderAssignments(list) {
 
     if (isOverdue) card.classList.add("overdue");
 
+    const attachmentHtml =
+      item.attachment_url && String(item.attachment_url).startsWith("http")
+        ? `
+          <div class="attachment-box">
+            <strong>Attachment:</strong>
+            <div>
+              <a href="${escapeHtml(item.attachment_url)}" target="_blank">
+                ${escapeHtml(item.attachment_name || "Open file")}
+              </a>
+            </div>
+          </div>`
+        : "";
+
     card.innerHTML = `
       <h3>${escapeHtml(subject)}</h3>
       <p class="assignment-meta"><strong>Task:</strong> ${escapeHtml(detail)}</p>
       <p class="assignment-meta"><strong>Due Date:</strong> ${escapeHtml(formatDate(dueDate))}</p>
+      ${attachmentHtml}
 
       <span class="status-badge ${
         String(status).toLowerCase() === "pending" ? "status-pending" : "status-done"
@@ -217,6 +241,7 @@ function renderAssignments(list) {
       <br><br>
 
       <button class="helper-btn">Help Me Understand</button>
+      <button class="voice-btn">🔊 Voice Explain</button>
       <button class="ack-btn">ACKNOWLEDGE</button>
 
       <div class="helper-box" style="display:none; margin-top:12px;"></div>
@@ -224,10 +249,26 @@ function renderAssignments(list) {
 
     const ackBtn = card.querySelector(".ack-btn");
     const helperBtn = card.querySelector(".helper-btn");
+    const voiceBtn = card.querySelector(".voice-btn");
     const helperBox = card.querySelector(".helper-box");
 
     ackBtn.addEventListener("click", () => ack(subject, ackBtn));
     helperBtn.addEventListener("click", () => helper(subject, helperBtn, helperBox));
+    voiceBtn.addEventListener("click", async () => {
+      try {
+        const data = await fetchJsonp(
+          `${SCRIPT_URL}?action=getAssignmentHelper&id=${encodeURIComponent(STUDENT_ID)}&subject=${encodeURIComponent(subject)}`
+        );
+
+        if (data.status === "success") {
+          speakText(
+            `Subject ${subject}. ${data.simple_explanation}. Parent action. ${data.parent_action}. Estimated time ${data.estimated_time}.`
+          );
+        }
+      } catch (error) {
+        console.warn("Voice explain failed", error);
+      }
+    });
 
     box.appendChild(card);
   });
@@ -254,8 +295,6 @@ async function ack(subject, button) {
       if (button) {
         button.innerText = "✅ SEEN";
         button.classList.add("done");
-      } else {
-        alert("Acknowledged");
       }
     } else {
       throw new Error(data.message || "ACK failed");
@@ -296,8 +335,6 @@ async function helper(subject, button, box) {
           <div style="margin-top:8px;"><strong>Estimated Time:</strong> ${escapeHtml(data.estimated_time || "-")}</div>
           <div style="margin-top:8px;"><strong>Note:</strong> ${escapeHtml(data.encouragement || "-")}</div>
         `;
-      } else {
-        alert(data.simple_explanation || "No help available");
       }
 
       if (button) button.innerText = "AI Help Ready";
@@ -313,6 +350,83 @@ async function helper(subject, button, box) {
   }
 }
 
+// ================= TIMETABLE =================
+function renderTimetable(todayItems, tomorrowItems, todayDay, tomorrowDay) {
+  const todayBox = document.getElementById("todayTimetable");
+  const tomorrowBox = document.getElementById("tomorrowPreparation");
+
+  if (todayBox) {
+    if (!todayItems || !todayItems.length) {
+      todayBox.innerHTML = `<div class="empty">No timetable found for ${escapeHtml(todayDay || "today")}.</div>`;
+    } else {
+      todayBox.innerHTML = todayItems.map(item => `
+        <div class="simple-list-item">
+          <strong>Period ${escapeHtml(item.period)} - ${escapeHtml(item.subject)}</strong><br>
+          <span>Book: ${escapeHtml(item.book || "-")}</span><br>
+          <span>Notes: ${escapeHtml(item.notes || "-")}</span>
+        </div>
+      `).join("");
+    }
+  }
+
+  if (tomorrowBox) {
+    if (!tomorrowItems || !tomorrowItems.length) {
+      tomorrowBox.innerHTML = `<div class="empty">No preparation found for ${escapeHtml(tomorrowDay || "tomorrow")}.</div>`;
+    } else {
+      tomorrowBox.innerHTML = tomorrowItems.map(item => `
+        <div class="simple-list-item">
+          <strong>Period ${escapeHtml(item.period)} - ${escapeHtml(item.subject)}</strong><br>
+          <span>Bring: ${escapeHtml(item.book || "-")}</span><br>
+          <span>Notes: ${escapeHtml(item.notes || "-")}</span>
+        </div>
+      `).join("");
+    }
+  }
+}
+
+async function loadTimetableAndQuiz() {
+  const timetableData = await fetchJsonp(
+    `${SCRIPT_URL}?action=getStudentTimetable&id=${encodeURIComponent(STUDENT_ID)}`
+  );
+
+  if (!timetableData || timetableData.status !== "success") {
+    const todayBox = document.getElementById("todayTimetable");
+    const tomorrowBox = document.getElementById("tomorrowPreparation");
+    const quizBox = document.getElementById("quizSection");
+
+    if (todayBox) todayBox.innerHTML = `<div class="empty">Timetable loading failed.</div>`;
+    if (tomorrowBox) tomorrowBox.innerHTML = `<div class="empty">Preparation loading failed.</div>`;
+    if (quizBox) quizBox.innerHTML = `<div class="empty">Quiz loading failed.</div>`;
+    return;
+  }
+
+  const todayItems = timetableData.today_timetable || [];
+  const tomorrowItems = timetableData.tomorrow_timetable || [];
+  const fallbackItems = timetableData.fallback_timetable || [];
+
+  const displayedTodayItems = todayItems.length ? todayItems : fallbackItems;
+
+  renderTimetable(
+    displayedTodayItems,
+    tomorrowItems,
+    todayItems.length ? timetableData.today_day : "Next Available Day",
+    timetableData.tomorrow_day || "Tomorrow"
+  );
+
+  const quizSubject =
+    todayItems[0]?.subject ||
+    tomorrowItems[0]?.subject ||
+    fallbackItems[0]?.subject;
+
+  const quizBox = document.getElementById("quizSection");
+
+  if (quizSubject) {
+    await loadQuiz(quizSubject);
+  } else if (quizBox) {
+    quizBox.innerHTML = `<div class="empty">No quiz available today.</div>`;
+  }
+}
+
 // ================= QUIZ =================
 async function loadQuiz(subject) {
   const el = document.getElementById("quizSection");
@@ -323,35 +437,68 @@ async function loadQuiz(subject) {
       `${SCRIPT_URL}?action=getDailyQuiz&id=${encodeURIComponent(STUDENT_ID)}&subject=${encodeURIComponent(subject)}`
     );
 
-    if (!data.quizzes || !data.quizzes.length) {
-      el.innerHTML = "No quiz found.";
+    if (!data || data.status !== "success" || !data.quizzes || !data.quizzes.length) {
+      el.innerHTML = `<div class="empty">No quiz found for ${escapeHtml(subject)}.</div>`;
       return;
     }
 
     const q = data.quizzes[0];
 
     el.innerHTML = `
-      <h3>${escapeHtml(q.question)}</h3>
-      <button onclick="submitQuiz('${escapeHtml(subject)}','${escapeHtml(q.question)}','A')">A. ${escapeHtml(q.option_a)}</button>
-      <button onclick="submitQuiz('${escapeHtml(subject)}','${escapeHtml(q.question)}','B')">B. ${escapeHtml(q.option_b)}</button>
-      <button onclick="submitQuiz('${escapeHtml(subject)}','${escapeHtml(q.question)}','C')">C. ${escapeHtml(q.option_c)}</button>
-      <button onclick="submitQuiz('${escapeHtml(subject)}','${escapeHtml(q.question)}','D')">D. ${escapeHtml(q.option_d)}</button>
+      <div class="quiz-box">
+        <h3>${escapeHtml(q.question)}</h3>
+        <button class="quiz-option" data-answer="A">A. ${escapeHtml(q.option_a)}</button>
+        <button class="quiz-option" data-answer="B">B. ${escapeHtml(q.option_b)}</button>
+        <button class="quiz-option" data-answer="C">C. ${escapeHtml(q.option_c)}</button>
+        <button class="quiz-option" data-answer="D">D. ${escapeHtml(q.option_d)}</button>
+        <div id="quizFeedback" class="helper-box" style="display:none; margin-top:12px;"></div>
+      </div>
     `;
+
+    const buttons = el.querySelectorAll(".quiz-option");
+    const feedback = document.getElementById("quizFeedback");
+
+    buttons.forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const answer = btn.getAttribute("data-answer");
+
+        buttons.forEach(b => b.disabled = true);
+
+        try {
+          const result = await submitQuiz(subject, q.question, answer);
+          const correct = String(result.correct_answer || "").toUpperCase();
+
+          buttons.forEach(b => {
+            const btnAnswer = b.getAttribute("data-answer");
+            if (btnAnswer === correct) b.classList.add("quiz-correct");
+            if (btnAnswer === answer && answer !== correct) b.classList.add("quiz-wrong");
+          });
+
+          if (feedback) {
+            feedback.style.display = "block";
+            feedback.innerHTML =
+              result.result === "Correct"
+                ? `<strong>✅ Correct!</strong><br>Excellent work.`
+                : `<strong>❌ Wrong.</strong><br>Correct answer: ${escapeHtml(correct)}<br>${escapeHtml(result.explanation || "")}`;
+          }
+        } catch (error) {
+          if (feedback) {
+            feedback.style.display = "block";
+            feedback.innerHTML = `<strong>⚠️ Error</strong><br>Quiz submission failed.`;
+          }
+        }
+      });
+    });
+
   } catch (error) {
-    el.innerHTML = "Quiz loading failed.";
+    el.innerHTML = `<div class="empty">Quiz loading failed.</div>`;
   }
 }
 
 async function submitQuiz(subject, question, answer) {
-  try {
-    const data = await fetchJsonp(
-      `${SCRIPT_URL}?action=submitQuizAnswer&id=${encodeURIComponent(STUDENT_ID)}&subject=${encodeURIComponent(subject)}&question=${encodeURIComponent(question)}&answer=${encodeURIComponent(answer)}`
-    );
-
-    alert(data.result || "Quiz submitted");
-  } catch (error) {
-    alert("Quiz submission failed.");
-  }
+  return await fetchJsonp(
+    `${SCRIPT_URL}?action=submitQuizAnswer&id=${encodeURIComponent(STUDENT_ID)}&subject=${encodeURIComponent(subject)}&question=${encodeURIComponent(question)}&answer=${encodeURIComponent(answer)}`
+  );
 }
 
 // ================= MAIN INIT =================
@@ -375,11 +522,13 @@ async function init() {
     renderAISummary(data.ai_summary, data.pending_count, data.overdue_count);
     renderAssignments(data.assignments || []);
 
+    await loadTimetableAndQuiz();
+
     try {
       const perf = await fetchJsonp(
         `${SCRIPT_URL}?action=getPerformanceIndex&id=${encodeURIComponent(STUDENT_ID)}`
       );
-      renderPerformance(perf);
+      if (perf && perf.status === "success") renderPerformance(perf);
     } catch (e) {
       console.warn("Performance section failed", e);
     }
@@ -426,7 +575,8 @@ async function checkRFIDEvent() {
       class_name: className,
       event_type: eventType,
       amount: amount,
-      timestamp: timestamp
+      timestamp: timestamp,
+      balance: data.balance
     });
 
   } catch (error) {
@@ -446,34 +596,25 @@ function showRFIDPopup(data) {
 
   const name = data.student_name || "Student";
   const cls = data.class_name || "";
-  const type = (data.event_type || "").toUpperCase();
+  const type = String(data.event_type || "").toUpperCase();
   const amount = Number(data.amount || 0);
 
-  let bgColor = "#2ecc71"; // default green
-  let title = "";
-  let subtitle = "";
-  let voiceText = "";
+  let bgColor = "#2ecc71";
+  let title = "✅ Attendance Recorded";
+  let subtitle = `${name} (${cls}) is present`;
+  let voiceText = `${name} attendance recorded`;
 
-  // 🎯 Smart UI logic
-  if (type === "ATTENDANCE") {
-    bgColor = "#2ecc71";
-    title = "✅ Attendance Recorded";
-    subtitle = `${name} (${cls}) is present`;
-    voiceText = `${name} attendance recorded`;
-  }
-
-  else if (type === "CANTEEN") {
+  if (type === "CANTEEN") {
     bgColor = "#3498db";
     title = "💰 Canteen Payment";
     subtitle = `RM ${amount.toFixed(2)} deducted`;
     voiceText = `Payment ${amount} ringgit`;
   }
 
-  // 🚨 Low balance check
-  if (data.balance !== undefined && data.balance < 5) {
+  if (data.balance !== undefined && Number(data.balance) < 5) {
     bgColor = "#e74c3c";
-    subtitle += `<br><strong>⚠️ Low Balance: RM ${data.balance.toFixed(2)}</strong>`;
-    voiceText += `. Low balance`;
+    subtitle += `<br><strong>⚠️ Low Balance: RM ${Number(data.balance).toFixed(2)}</strong>`;
+    voiceText += ". Low balance";
   }
 
   isRFIDPopupVisible = true;
@@ -481,16 +622,13 @@ function showRFIDPopup(data) {
   msg.innerHTML = `
     <div style="background:${bgColor};padding:20px;border-radius:12px;color:white;text-align:center;">
       <h2>${escapeHtml(title)}</h2>
-      <p>${escapeHtml(subtitle)}</p>
+      <p>${subtitle}</p>
     </div>
   `;
 
   popup.style.display = "flex";
 
-  // 🔊 SOUND
   playBeep();
-
-  // 🗣 VOICE
   speakText(voiceText);
 
   setTimeout(() => {
@@ -521,7 +659,10 @@ async function loadLiveAttendance() {
       }
 
       box.innerHTML = students.map(s => `
-        <div>${escapeHtml(s.student_name || s.StudentName || "")}</div>
+        <div class="attendance-item">
+          <strong>${escapeHtml(s.student_name || s.StudentName || "")}</strong><br>
+          ${escapeHtml(s.class_name || s.Class || "")}
+        </div>
       `).join("");
     }
   } catch (error) {
