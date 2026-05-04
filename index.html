@@ -1,25 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#2563eb">
-
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="EduSmart 2026">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-
-<link rel="apple-touch-icon" href="icon-192.png">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>EduSmart 2026 | Parent Dashboard</title>
+
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2563eb">
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="EduSmart 2026">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+  <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="stylesheet" href="style.css" />
 </head>
-<div id="rfidPopup" class="rfid-popup" style="display:none;">
-  <div class="rfid-popup-content">
-    <div id="rfidMessage"></div>
+
+<body>
+  <div id="rfidPopup" class="rfid-popup" style="display:none;">
+    <div class="rfid-popup-content">
+      <div id="rfidMessage"></div>
+    </div>
   </div>
-</div>
-  <body>
+
   <div class="container">
     <header class="hero">
       <div class="hero-badge">AI + IoT + Coding + Cloud</div>
@@ -33,7 +37,7 @@
           <h2>Student Profile</h2>
           <span class="pill pill-dark">Live Data</span>
         </div>
-        <button id="logoutBtn" class="refresh-btn">Logout</button>
+        <button id="logoutBtn" class="refresh-btn" type="button">Logout</button>
       </div>
 
       <div class="profile-grid">
@@ -71,46 +75,53 @@
       </div>
       <div id="aiSummary" class="ai-summary">Loading AI summary...</div>
     </section>
+
     <div id="performanceSection"></div>
+
+    <section class="card">
+      <div class="section-title">
+        <h2>Today's Timetable</h2>
+        <span class="pill pill-blue">Learning Plan</span>
+      </div>
+      <div id="todayTimetable">Loading timetable...</div>
+    </section>
+
+    <section class="card">
+      <div class="section-title">
+        <h2>Tomorrow's Preparation</h2>
+        <span class="pill pill-gold">Bring These Books</span>
+      </div>
+      <div id="tomorrowPreparation">Loading tomorrow preparation...</div>
+    </section>
+
+    <section class="card">
+      <div class="section-title">
+        <h2>Daily Quiz</h2>
+        <span class="pill pill-green">Fun Learning</span>
+      </div>
+      <div id="quizSection">Loading quiz...</div>
+    </section>
+
+    <section class="card">
+      <div class="section-title">
+        <h2>📊 Live Attendance Today</h2>
+        <span class="pill pill-green">RFID Live</span>
+      </div>
+
+      <div id="attendanceCount" style="font-size:20px; font-weight:bold;">
+        Loading...
+      </div>
+
+      <div id="attendanceList"></div>
+    </section>
+
     <section class="card">
       <div class="section-head">
         <div class="section-title">
-        <section class="card">
-  <div class="section-title">
-    <h2>Today's Timetable</h2>
-    <span class="pill pill-blue">Learning Plan</span>
-  </div>
-  <div id="todayTimetable">Loading timetable...</div>
-</section>
-
-<section class="card">
-  <div class="section-title">
-    <h2>Tomorrow's Preparation</h2>
-    <span class="pill pill-gold">Bring These Books</span>
-  </div>
-  <div id="tomorrowPreparation">Loading tomorrow preparation...</div>
-</section>
-
-<section class="card">
-  <div class="section-title">
-    <h2>Daily Quiz</h2>
-    <span class="pill pill-green">Fun Learning</span>
-  </div>
-  <div id="quizSection">Loading quiz...</div>
-</section>  
-          <div class="card">
-  <h3>📊 Live Attendance Today</h3>
-
-  <div id="attendanceCount" style="font-size:20px; font-weight:bold;">
-    Loading...
-  </div>
-
-  <div id="attendanceList"></div>
-</div>
           <h2>Assignments</h2>
           <span class="pill pill-gold">Parent Action Required</span>
         </div>
-        <button id="refreshBtn" class="refresh-btn">Refresh</button>
+        <button id="refreshBtn" class="refresh-btn" type="button">Refresh</button>
       </div>
 
       <div id="assignmentList" class="assignment-list">
@@ -128,14 +139,11 @@
   </div>
 
   <script src="script.js"></script>
-    <script src="login.js"></script>
 
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("service-worker.js");
     }
   </script>
-</body>
-</html>
 </body>
 </html>
