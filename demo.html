@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EduSmart 2026 Demo Portal</title>
+  <title>EduSmart 2026 Competition Demo Portal</title>
   <link rel="stylesheet" href="style.css">
 
   <style>
@@ -11,43 +11,48 @@
       min-height: 100vh;
       background: radial-gradient(circle at top, #eaf2ff 0%, #f4f7fb 45%, #e8eef7 100%);
       overflow-x: hidden;
+      padding-bottom: 70px;
     }
 
-    .demo-logo-top {
+    .top-logo {
       position: fixed;
       top: 18px;
       left: 18px;
       display: flex;
       align-items: center;
       gap: 12px;
-      z-index: 10;
+      z-index: 20;
     }
 
-    .demo-logo-top img {
-      width: 72px;
-      height: 72px;
+    .top-logo img {
+      width: 76px;
+      height: 76px;
       object-fit: contain;
-      border-radius: 12px;
       background: white;
       padding: 6px;
-      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.15);
+      border-radius: 16px;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
     }
 
-    .demo-logo-top span {
-      font-weight: 800;
+    .top-logo span {
+      font-weight: 900;
       color: #0f172a;
       font-size: 16px;
+      line-height: 1.2;
     }
 
-    .demo-portal-card {
-      max-width: 1050px;
+    .portal-wrap {
+      max-width: 1180px;
       margin: 0 auto;
-      padding: 32px;
-      border-radius: 28px;
-      background: rgba(255, 255, 255, 0.88);
-      backdrop-filter: blur(12px);
-      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12);
-      border: 1px solid rgba(219, 228, 240, 0.9);
+      padding: 24px;
+    }
+
+    .portal-card {
+      background: rgba(255,255,255,0.92);
+      border: 1px solid #dbeafe;
+      border-radius: 30px;
+      padding: 30px;
+      box-shadow: 0 22px 50px rgba(15, 23, 42, 0.14);
     }
 
     .demo-grid {
@@ -58,43 +63,29 @@
     }
 
     .demo-btn {
-      text-decoration: none;
-      min-height: 150px;
+      min-height: 145px;
       border-radius: 24px;
       padding: 24px;
       color: white;
-      font-weight: 800;
+      text-decoration: none;
       font-size: 20px;
+      font-weight: 900;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      box-shadow: 0 16px 30px rgba(37, 99, 235, 0.22);
       transition: 0.25s ease;
       position: relative;
       overflow: hidden;
-    }
-
-    .demo-btn::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(120deg, transparent, rgba(255,255,255,0.22), transparent);
-      transform: translateX(-100%);
-      transition: 0.6s;
-    }
-
-    .demo-btn:hover::before {
-      transform: translateX(100%);
+      box-shadow: 0 16px 32px rgba(15, 23, 42, 0.18);
     }
 
     .demo-btn:hover {
-      transform: translateY(-6px) scale(1.02);
-      box-shadow: 0 22px 38px rgba(15, 23, 42, 0.22);
+      transform: translateY(-7px) scale(1.02);
     }
 
     .demo-icon {
-      font-size: 42px;
+      font-size: 44px;
       margin-bottom: 12px;
     }
 
@@ -103,15 +94,32 @@
     .admin { background: linear-gradient(135deg, #0f172a, #334155); }
     .analytics { background: linear-gradient(135deg, #16a34a, #15803d); }
 
+    .poster-section {
+      margin-top: 30px;
+    }
+
+    .poster-frame {
+      background: #0f172a;
+      padding: 14px;
+      border-radius: 28px;
+      box-shadow: 0 24px 48px rgba(15, 23, 42, 0.22);
+    }
+
+    .poster-frame img {
+      width: 100%;
+      display: block;
+      border-radius: 18px;
+    }
+
     .demo-note {
-      margin-top: 24px;
+      margin-top: 20px;
       padding: 16px;
       border-radius: 18px;
       background: #f8fbff;
-      border: 1px solid #dbeafe;
-      color: #1e3a8a;
+      border: 1px solid #bfdbfe;
       text-align: center;
-      font-weight: 700;
+      font-weight: 800;
+      color: #1e3a8a;
     }
 
     .running-bar {
@@ -121,10 +129,9 @@
       width: 100%;
       background: linear-gradient(90deg, #0f172a, #1d4ed8, #0f172a);
       color: white;
-      padding: 12px 0;
+      padding: 10px 0;
       overflow: hidden;
-      z-index: 20;
-      box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.18);
+      z-index: 50;
     }
 
     .running-text {
@@ -134,16 +141,15 @@
       white-space: nowrap;
       animation: marquee 18s linear infinite;
       font-size: 18px;
-      font-weight: 800;
-      letter-spacing: 0.3px;
+      font-weight: 900;
     }
 
     .running-text img {
       width: 42px;
       height: 42px;
       object-fit: contain;
-      border-radius: 50%;
       background: white;
+      border-radius: 50%;
       padding: 3px;
     }
 
@@ -153,44 +159,44 @@
     }
 
     @media (max-width: 768px) {
-      .demo-logo-top {
+      .top-logo {
         position: static;
         justify-content: center;
-        margin-top: 16px;
+        margin-top: 14px;
       }
 
       .hero h1 {
         font-size: 40px;
       }
 
-      .demo-portal-card {
-        padding: 22px;
+      .portal-card {
+        padding: 20px;
       }
 
       .demo-btn {
-        min-height: 120px;
+        min-height: 115px;
       }
     }
   </style>
 </head>
 
 <body>
-  <div class="demo-logo-top">
+  <div class="top-logo">
     <img src="school-logo.jpg" alt="SJKT SG ARA Logo">
     <span>SJKT SG ARA<br>STEM PROJECT</span>
   </div>
 
-  <div class="container">
+  <div class="portal-wrap">
     <header class="hero">
-      <div class="hero-badge">Judges Demo Portal</div>
+      <div class="hero-badge">Competition Demo Portal</div>
       <h1>EduSmart 2026</h1>
       <p class="subtitle">SJKT SG ARA Student Initiative by BUILDS</p>
     </header>
 
-    <section class="demo-portal-card">
+    <section class="portal-card">
       <div class="section-title">
         <h2>Choose Demo Module</h2>
-        <span class="pill pill-blue">Live System</span>
+        <span class="pill pill-blue">Live Presentation</span>
       </div>
 
       <div class="demo-grid">
@@ -219,6 +225,17 @@
 
       <div class="demo-note">
         Demo Flow: RFID Attendance → Cloud Database → Parent Dashboard → Analytics
+      </div>
+
+      <div class="poster-section">
+        <div class="section-title">
+          <h2>Exhibition Poster</h2>
+          <span class="pill pill-gold">Project Showcase</span>
+        </div>
+
+        <div class="poster-frame">
+          <img src="poster.jpg" alt="EduSmart 2026 Exhibition Poster">
+        </div>
       </div>
     </section>
   </div>
