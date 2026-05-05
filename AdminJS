@@ -43,7 +43,23 @@ function addAssignment() {
     })
     .addAssignmentObject(payload);
 }
+let CURRENT_MODE = "ATTENDANCE";
 
+function setMode(mode) {
+  CURRENT_MODE = mode;
+
+  document.getElementById("modeStatus").innerText =
+    "Current Mode: " + mode;
+
+  // Save to backend
+  google.script.run.setRFIDMode(mode);
+}
+
+document.getElementById("btnAttendanceMode")
+  ?.addEventListener("click", () => setMode("ATTENDANCE"));
+
+document.getElementById("btnCanteenMode")
+  ?.addEventListener("click", () => setMode("CANTEEN"));
 function updateBalance() {
   setStatus("Updating balance...");
 
