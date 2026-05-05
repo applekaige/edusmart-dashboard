@@ -691,3 +691,84 @@ button:disabled {
   font-size: 14px;
   line-height: 1.6;
 }
+.team-premium-card {
+  max-width: 1180px;
+  margin: 0 auto 26px;
+  padding: 26px;
+  border-radius: 28px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(239,246,255,0.95));
+  border: 1px solid #dbeafe;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+}
+
+.team-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.team-header h2 {
+  margin: 0;
+  font-size: 28px;
+  color: #0f172a;
+}
+
+.team-header p {
+  margin: 6px 0 0;
+  color: #475569;
+  font-weight: 700;
+}
+
+.team-premium-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.team-profile {
+  padding: 20px;
+  border-radius: 22px;
+  color: white;
+  min-height: 180px;
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.16);
+  transition: 0.25s ease;
+}
+
+.team-profile:hover {
+  transform: translateY(-6px);
+}
+
+.team-icon {
+  font-size: 42px;
+  margin-bottom: 12px;
+}
+
+.team-profile h3 {
+  margin: 0 0 10px;
+  font-size: 20px;
+}
+
+.team-profile p {
+  margin: 0;
+  line-height: 1.6;
+  font-weight: 700;
+}
+
+.team-profile.students {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.team-profile.advisor {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+}
+
+.team-profile.headmaster {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+}
+
+.team-profile.builds {
+  background: linear-gradient(135deg, #f97316, #c2410c);
+}
