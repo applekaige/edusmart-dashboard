@@ -1,13 +1,185 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SJKT SG ARA EduSmart 2026 Demo Portal</title>
+  <title>EduSmart 2026 Demo Portal</title>
   <link rel="stylesheet" href="style.css">
+
+  <style>
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #eaf2ff 0%, #f4f7fb 45%, #e8eef7 100%);
+      overflow-x: hidden;
+    }
+
+    .demo-logo-top {
+      position: fixed;
+      top: 18px;
+      left: 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 10;
+    }
+
+    .demo-logo-top img {
+      width: 72px;
+      height: 72px;
+      object-fit: contain;
+      border-radius: 12px;
+      background: white;
+      padding: 6px;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.15);
+    }
+
+    .demo-logo-top span {
+      font-weight: 800;
+      color: #0f172a;
+      font-size: 16px;
+    }
+
+    .demo-portal-card {
+      max-width: 1050px;
+      margin: 0 auto;
+      padding: 32px;
+      border-radius: 28px;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12);
+      border: 1px solid rgba(219, 228, 240, 0.9);
+    }
+
+    .demo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 18px;
+      margin-top: 24px;
+    }
+
+    .demo-btn {
+      text-decoration: none;
+      min-height: 150px;
+      border-radius: 24px;
+      padding: 24px;
+      color: white;
+      font-weight: 800;
+      font-size: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 16px 30px rgba(37, 99, 235, 0.22);
+      transition: 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .demo-btn::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, transparent, rgba(255,255,255,0.22), transparent);
+      transform: translateX(-100%);
+      transition: 0.6s;
+    }
+
+    .demo-btn:hover::before {
+      transform: translateX(100%);
+    }
+
+    .demo-btn:hover {
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: 0 22px 38px rgba(15, 23, 42, 0.22);
+    }
+
+    .demo-icon {
+      font-size: 42px;
+      margin-bottom: 12px;
+    }
+
+    .parent { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+    .dashboard { background: linear-gradient(135deg, #7c3aed, #4f46e5); }
+    .admin { background: linear-gradient(135deg, #0f172a, #334155); }
+    .analytics { background: linear-gradient(135deg, #16a34a, #15803d); }
+
+    .demo-note {
+      margin-top: 24px;
+      padding: 16px;
+      border-radius: 18px;
+      background: #f8fbff;
+      border: 1px solid #dbeafe;
+      color: #1e3a8a;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .running-bar {
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      background: linear-gradient(90deg, #0f172a, #1d4ed8, #0f172a);
+      color: white;
+      padding: 12px 0;
+      overflow: hidden;
+      z-index: 20;
+      box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.18);
+    }
+
+    .running-text {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      white-space: nowrap;
+      animation: marquee 18s linear infinite;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+    }
+
+    .running-text img {
+      width: 42px;
+      height: 42px;
+      object-fit: contain;
+      border-radius: 50%;
+      background: white;
+      padding: 3px;
+    }
+
+    @keyframes marquee {
+      from { transform: translateX(100vw); }
+      to { transform: translateX(-100%); }
+    }
+
+    @media (max-width: 768px) {
+      .demo-logo-top {
+        position: static;
+        justify-content: center;
+        margin-top: 16px;
+      }
+
+      .hero h1 {
+        font-size: 40px;
+      }
+
+      .demo-portal-card {
+        padding: 22px;
+      }
+
+      .demo-btn {
+        min-height: 120px;
+      }
+    }
+  </style>
 </head>
 
 <body>
+  <div class="demo-logo-top">
+    <img src="school-logo.jpg" alt="SJKT SG ARA Logo">
+    <span>SJKT SG ARA<br>STEM PROJECT</span>
+  </div>
+
   <div class="container">
     <header class="hero">
       <div class="hero-badge">Judges Demo Portal</div>
@@ -15,29 +187,49 @@
       <p class="subtitle">SJKT SG ARA Student Initiative by BUILDS</p>
     </header>
 
-    <section class="card">
-      <h2>Choose Demo Module</h2>
+    <section class="demo-portal-card">
+      <div class="section-title">
+        <h2>Choose Demo Module</h2>
+        <span class="pill pill-blue">Live System</span>
+      </div>
 
       <div class="demo-grid">
-        <a class="demo-btn" href="login.html">
-          👨‍👩‍👧 Parent Login
+        <a class="demo-btn parent" href="login.html">
+          <div class="demo-icon">👨‍👩‍👧</div>
+          Parent Login
         </a>
 
-        <a class="demo-btn" href="index.html?id=STU001">
-          📱 Parent Dashboard Demo
+        <a class="demo-btn dashboard" href="index.html?id=STU001">
+          <div class="demo-icon">📱</div>
+          Parent Dashboard Demo
         </a>
 
-        <a class="demo-btn"
-   href="https://script.google.com/macros/s/AKfycbwGRRktezMyxBJ_Q_N0dPHAIKI0nBeQukF4USmKG-konnTiXeo3Jz8XOf12FNxCFxb-/exec?page=admin"
-   target="_blank">
-  👩‍🏫 Teacher/Admin Login
-</a>
+        <a class="demo-btn admin"
+           href="https://script.google.com/macros/s/AKfycbwGRRktezMyxBJ_Q_N0dPHAIKI0nBeQukF4USmKG-konnTiXeo3Jz8XOf12FNxCFxb-/exec?page=admin"
+           target="_blank">
+          <div class="demo-icon">👩‍🏫</div>
+          Admin Panel
+        </a>
 
-        <a class="demo-btn" href="analytics.html" target="_blank">
-          📊 Analytics Dashboard
+        <a class="demo-btn analytics" href="analytics.html" target="_blank">
+          <div class="demo-icon">📊</div>
+          Analytics Dashboard
         </a>
       </div>
+
+      <div class="demo-note">
+        Demo Flow: RFID Attendance → Cloud Database → Parent Dashboard → Analytics
+      </div>
     </section>
+  </div>
+
+  <div class="running-bar">
+    <div class="running-text">
+      <img src="builds-logo.jpg" alt="BUILDS Logo">
+      Initiated for community by BUILDS — Nurturing young talent to adapt technology and innovation
+      <img src="builds-logo.jpg" alt="BUILDS Logo">
+      Initiated for community by BUILDS — Nurturing young talent to adapt technology and innovation
+    </div>
   </div>
 </body>
 </html>
