@@ -772,3 +772,6 @@ button:disabled {
 .team-profile.builds {
   background: linear-gradient(135deg, #f97316, #c2410c);
 }
+.mode-control button.active {
+  background: green;
+}
