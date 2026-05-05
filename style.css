@@ -654,3 +654,16 @@ button:disabled {
 .demo-btn:hover {
   background: #1d4ed8;
 }
+.header-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.school-logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  object-fit: cover;
+}
