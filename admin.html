@@ -14,11 +14,19 @@
       <p class="subtitle">SJKT Sungai Ara STEM Project</p>
     </header>
 
-    <section class="card">
-      <div class="section-title">
-        <h2>Add Student</h2>
-        <span class="pill pill-blue">Student Database</span>
-      </div>
+   <section class="card">
+  <div class="section-title">
+    <h2>RFID Mode Control</h2>
+    <span class="pill pill-dark">Live Operation</span>
+  </div>
+
+  <div class="mode-control">
+    <button id="btnAttendanceMode" class="admin-btn">📍 Attendance Mode</button>
+    <button id="btnCanteenMode" class="admin-btn dark-btn">🍽️ Canteen Mode</button>
+  </div>
+
+  <p id="modeStatus">Current Mode: Attendance</p>
+</section>
 
       <div class="form-grid">
         <input id="student_id" placeholder="Student ID (e.g. STU002)" />
