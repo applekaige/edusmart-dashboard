@@ -632,3 +632,25 @@ button:disabled {
   border-bottom: 1px solid #eee;
   font-size: 14px;
 }
+.demo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.demo-btn {
+  display: block;
+  text-decoration: none;
+  background: #2563eb;
+  color: white;
+  padding: 18px;
+  border-radius: 16px;
+  font-weight: bold;
+  text-align: center;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+}
+
+.demo-btn:hover {
+  background: #1d4ed8;
+}
